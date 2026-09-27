@@ -111,7 +111,7 @@ async function runTestCase(prompt: string, filename: string): Promise<{ prompt: 
 
   const evalResponse = await gradeByModel(prompt, [filename, 'output.csv'], answer);
 
-  console.log(evalResponse);
+  // console.log(evalResponse);
 
   const parsed = parseEvaluationPayload(evalResponse);
 
@@ -123,10 +123,17 @@ async function runTestCase(prompt: string, filename: string): Promise<{ prompt: 
     "reasoning": parsed.reasoning,
     "score": parsed.score
   }
+
+  // code grader is skipped due to complexity of 
+  // implemeting generation of dataset with metadata 
+  // (if you manually add column number of dataset file, 
+  // and then read csv and compute column number after 
+  // extraction you can use the compare as code grader 
+  // score, and take the average of two.)
 }
 
-async function runEvalWorkflow(promptsJsonFilename: string, datasetJsonFilename: string): Promise<{ prompt: string; filename: string; strengths: string[]; weaknesses: string[]; reasoning: string; score: number }[]> {
-  let result: { prompt: string; filename: string; strengths: string[]; weaknesses: string[]; reasoning: string; score: number }[] = [];
+async function runEvalWorkflow(promptsJsonFilename: string, datasetJsonFilename: string): Promise<{ prompt: string; filename: string[]; strengths: string[]; weaknesses: string[]; reasoning: string[]; score: number }[]> {
+  let result: { prompt: string; filename: string[]; strengths: string[]; weaknesses: string[]; reasoning: string[]; score: number }[] = [];
 
   const safePromptsFilename = path.basename(promptsJsonFilename);
   const destinationPrompts = path.join(INPUT_DIR_JSON, safePromptsFilename);
@@ -136,12 +143,38 @@ async function runEvalWorkflow(promptsJsonFilename: string, datasetJsonFilename:
   const destinationDataset = path.join(INPUT_DIR_JSON, safeDatasetFilename);
   const datasetJson = JSON.parse(readFileSync(destinationDataset, 'utf8'));
  
+  let averageEvalResult : {
+    "prompt": string,
+    "filename": string[],
+    "strengths": string[],
+    "weaknesses": string[],
+    "reasoning": string[],
+    "score": number
+  };
+  let averageScore: number[]
   for (const prompt of promptsJson) {
+    averageEvalResult = {
+      "prompt": prompt,
+      "filename": [],
+      "strengths": [],
+      "weaknesses": [],
+      "reasoning": [],
+      "score": 0
+    }
+    averageScore = [];
     for (const filename of datasetJson) {
       console.log(`Running test case with prompt: "${prompt.prompt}" and filename: "${filename.filename}"`);
       const evalResult = await runTestCase(prompt.prompt, filename.filename);
-      result.push(evalResult);
+      averageEvalResult.filename.push(filename);
+      for (const strength of evalResult.strengths)
+        averageEvalResult.strengths.push(strength);
+      for (const weakness of evalResult.weaknesses)
+        averageEvalResult.weaknesses.push(weakness);
+      averageEvalResult.reasoning.push(evalResult.reasoning); 
+      averageScore.push(evalResult.score)    
     }
+    averageEvalResult.score = averageScore.reduce((sum, current) => sum + current, 0) / averageScore.length;
+    result.push(averageEvalResult);
   } 
   // console.log("Eval workflow completed. Results:", result);
   return result;

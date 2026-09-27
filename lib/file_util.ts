@@ -23,19 +23,21 @@ export async function listFiles() {
 
 export async function deleteFiles(files: string | string[]) {
     if (Array.isArray(files)) {
-        for (const file in files) {
-            await anthropic.beta.files.delete(file);
+        for (const file of files) {
+            try {
+                console.log(file);
+                await anthropic.beta.files.delete(file);
+                console.log(`${file} deleted!`);
+            } catch (error) {
+                console.log(`${file} is not deleted!`);
+            }
         }
     } else {
         await anthropic.beta.files.delete(files);
     }
 }
 
-const files = [
-    'file_0149N2c4u6KZJKKxFBuf2rLa',
-    'file_01DouQKR7Ranna9wFpAhy5k2',
-    'file_01LEeNDRvEZEFoxXrH8fEhob',
-    'file_01A9hdnF56BGpwnBmNytWVfv',
+const files: string[] = [
     'file_01HVSHcGATE31GQyCG2jCQCe',
     'file_01XpgK6W6fgWN2vnpxwf5oUL',
     'file_01R8w1dRDu78qW4kDUv1uGXT',
@@ -50,7 +52,13 @@ const files = [
     'file_01UAhqSfK9Q5Q2WegtoiLGSs',
     'file_01Kq2PskPCViQwGoh556rgzH',
     'file_01JWiRjaUovEqJxi3caKcfu6',
-    'file_01DvUxkbMoB43gMc5sAfqepA'
+    'file_01DvUxkbMoB43gMc5sAfqepA',
+    'file_0169KdZ3BnkpHw2HNexBPa1H',
+    'file_01APjg3Z3BTAs5CCVYdousKK',
+    'file_0159o1FDXtgt8A4s2EpyKR5T',
+    'file_015ECqsHFjCBFa3U844JhYuG',
+    'file_01V8zVDJnnMpj4GeXRSJ471m'
 ]
 
 // listFiles();
+// deleteFiles(files);
