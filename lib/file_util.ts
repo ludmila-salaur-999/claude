@@ -1,6 +1,10 @@
 import { getClient } from './client.js';
 import { toFile } from '@anthropic-ai/sdk';
 import { createReadStream } from 'fs';
+import { mkdirSync, writeFile } from 'fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
 
 const anthropic = getClient();
 
@@ -14,6 +18,42 @@ export async function uploadFile(filename: string) : Promise<string> {
     });
     console.log(uploaded.id);
     return uploaded.id;
+}
+
+export async function downloadFile(answer: AnthropicMessage) {
+  for (const block of answer.content) {
+    if (block.type === "bash_code_execution_tool_result") {
+      const result = block.content;
+      if (result.type === "bash_code_execution_result") {
+        for (const outputBlock of result.content) {
+          const [fileMetadata, fileResponse] = await Promise.all([
+            anthropic.files.retrieveMetadata(outputBlock.file_id),
+            anthropic.files.download(outputBlock.file_id)
+          ]);
+          const arrayBuffer = await fileResponse.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          saveGeneratedFile(fileMetadata.filename, buffer);
+        }
+      }
+    }
+  }    
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/output/files');
+mkdirSync(OUTPUT_DIR_FILES, { recursive: true });
+function saveGeneratedFile(filename: string, buffer: Buffer): void {
+  const safeFilename = path.basename(filename);
+  const destination = path.join(OUTPUT_DIR_FILES, safeFilename);
+
+  writeFile(destination, buffer, (err) => {
+    if (err) {
+      console.error(`Failed to save ${safeFilename}:`, err);
+      return;
+    }
+    console.log(`Downloaded: ${safeFilename} -> ${destination}`);
+  });
 }
 
 export async function listFiles() {
