@@ -1,5 +1,5 @@
 [
     {
-        "prompt": "Extract table from pdf document into generated output csv only wide data file as 'output.csv'. The pdf is attached as base64 encoded string."
+        "prompt": "Extract table from pdf document into generated output csv only wide data file one row per region with all metric columns as 'output.csv'. The pdf is attached as base64 encoded string."
     }
 ]

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Complex Table Example</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+
+  <h1>Sales Report</h1>
+
+  <table id="reportTable">
+    <thead>
+      <tr>
+        <th rowspan="2">Region</th>
+        <th>R1</th>
+        <th>R2</th>
+        <th>R3</th>
+        <th rowspan="2">Total</th>
+      </tr>
+      <tr>
+        <th>Q1</th>
+        <th>Q2</th>
+        <th>Q3</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td rowspan="2">North</td>
+        <td>1200</td>
+        <td>1500</td>
+        <td>1700</td>
+        <td rowspan="2">4400</td>
+      </tr>
+      <tr>
+        <td>1234.567</td>
+        <td>4567.89</td>
+        <td>345.67</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">South</td>
+        <td>900</td>
+        <td>1100</td>
+        <td>1300</td>
+        <td rowspan="2">3300</td>
+      </tr>
+      <tr>
+        <td>6789.567</td>
+        <td>2345.89</td>
+        <td>1212.67</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">East</td>
+        <td>1230</td>
+        <td>1100</td>
+        <td>1705</td>
+        <td rowspan="2">4400</td>
+      </tr>
+      <tr>
+        <td>1211.567</td>
+        <td>4511.89</td>
+        <td>345.11</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">West</td>
+        <td>800</td>
+        <td>950</td>
+        <td>1200</td>
+        <td rowspan="2">2950</td>
+      </tr>
+      <tr>
+        <td>5678.567</td>
+        <td>2345.89</td>
+        <td>1212.67</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">One</td>
+        <td>1400</td>
+        <td>1660</td>
+        <td>1770</td>
+        <td rowspan="2">4400</td>
+      </tr>
+      <tr>
+        <td>1288.567</td>
+        <td>4999.89</td>
+        <td>345.01</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Two</td>
+        <td>1000</td>
+        <td>1200</td>
+        <td>1500</td>
+        <td rowspan="2">3700</td>
+      </tr>
+      <tr>
+        <td>6789.567</td>
+        <td>2345.89</td>
+        <td>1212.67</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Three</td>
+        <td>1300</td>
+        <td>1400</td>
+        <td>1600</td>
+        <td rowspan="2">4300</td>
+      </tr>
+      <tr>
+        <td>1211.567</td>
+        <td>4511.89</td>
+        <td>345.11</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Four</td>
+        <td>900</td>
+        <td>1100</td>
+        <td>1300</td>
+        <td rowspan="2">3300</td>
+      </tr>
+      <tr>
+        <td>5678.567</td>
+        <td>2345.89</td>
+        <td>1212.67</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Five</td>
+        <td>1400</td>
+        <td>1660</td>
+        <td>1770</td>
+        <td rowspan="2">4400</td>
+      </tr>
+      <tr>
+        <td>1288.567</td>
+        <td>4999.89</td>
+        <td>345.01</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Six</td>
+        <td>1000</td>
+        <td>1200</td>
+        <td>1500</td>
+        <td rowspan="2">3700</td>
+      </tr>
+      <tr>
+        <td>6789.567</td>
+        <td>2345.89</td>
+        <td>1212.67</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Seven</td>
+        <td>1300</td>
+        <td>1400</td>
+        <td>1600</td>
+        <td rowspan="2">4300</td>
+      </tr>
+      <tr>
+        <td>1211.567</td>
+        <td>4511.89</td>
+        <td>345.11</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Eight</td>
+        <td>900</td>
+        <td>1100</td>
+        <td>1300</td>
+        <td rowspan="2">3300</td>
+      </tr>
+      <tr>
+        <td>5678.567</td>
+        <td>2345.89</td>
+        <td>1212.67</td>
+      </tr>
+
+      <tr>
+        <td rowspan="2">Nine</td>
+        <td>1400</td>
+        <td>1660</td>
+        <td>1770</td>
+        <td rowspan="2">4400</td>
+      </tr>
+      <tr>
+        <td>1288.567</td>
+        <td>4999.89</td>
+        <td>345.01</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button id="downloadPDF">Download as PDF</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    document.getElementById('downloadPDF').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+
+      const body = [
+        ['North', 1200, 1500, 1700, 4400],
+        ['', 1234.567, 4567.89, 345.67, ''],
+        ['South', 900, 1100, 1300, 3300],
+        ['', 6789.567, 2345.89, 1212.67, ''],
+        ['East', 1230, 1100, 1705, 4400],
+        ['', 1211.567, 4511.89, 345.11, ''],
+        ['West', 800, 950, 1200, 2950],
+        ['', 5678.567, 2345.89, 1212.67, ''],
+        ['One', 1400, 1660, 1770, 4400],
+        ['', 1288.567, 4999.89, 345.01, ''],
+        ['Two', 1000, 1200, 1500, 3700],
+        ['', 6789.567, 2345.89, 1212.67, ''],
+        ['Three', 1300, 1400, 1600, 4300],
+        ['', 1211.567, 4511.89, 345.11, ''],
+        ['Four', 900, 1100, 1300, 3300],
+        ['', 5678.567, 2345.89, 1212.67, ''],
+        ['Five', 1400, 1660, 1770, 4400],
+        ['', 1288.567, 4999.89, 345.01, ''],
+        ['Six', 1000, 1200, 1500, 3700],
+        ['', 6789.567, 2345.89, 1212.67, ''],
+        ['Seven', 1300, 1400, 1600, 4300],
+        ['', 1211.567, 4511.89, 345.11, ''],
+        ['Eight', 900, 1100, 1300, 3300],
+        ['', 5678.567, 2345.89, 1212.67, ''],
+        ['Nine', 1400, 1660, 1770, 4400],
+        ['', 1288.567, 4999.89, 345.01, '']
+      ];
+
+      const doc = new jsPDF();
+      doc.text("Sales Report", 14, 12);
+
+      doc.autoTable({
+        head: [
+          ['Region', 'R1', 'R2', 'R3', 'Total'],
+          ['', 'Q1', 'Q2', 'Q3', '']
+        ],
+        body,
+        startY: 20,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [240, 240, 240],
+          textColor: [0, 0, 0],
+          fontStyle: 'bold'
+        },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3
+        },
+        didParseCell: function(data) {
+          if (data.section === 'head') {
+            if (data.row.index === 1 && (data.column.index === 0 || data.column.index === 4)) {
+              data.cell.text = '';
+            }
+          }
+
+          if (data.section === 'body') {
+            if (data.column.index === 0 || data.column.index === 4) {
+              if (data.row.index % 2 === 0) {
+                data.cell.rowSpan = 2;
+                data.cell.styles.valign = 'middle';
+              } else {
+                data.cell.text = '';
+                data.cell.styles.fillColor = [255, 255, 255];
+                data.cell.styles.textColor = [255, 255, 255];
+              }
+            }
+          }
+        }
+      });
+
+      doc.save('sales_report.pdf');
+    });
+  </script>
+
+</body>
+</html>
