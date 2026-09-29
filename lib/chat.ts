@@ -1,4 +1,4 @@
-import { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources.js';
+import { ContentBlock, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources.js';
 import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
 import 'dotenv/config'; // Automatically loads your .env file
 import { mkdirSync, readFileSync } from 'fs';
@@ -8,6 +8,7 @@ import { getClient } from './client.js';
 import { uploadFile, downloadFile, deleteFiles } from './file_util.js';
 import { Message, createPDFMessage, createTextMessage, createUploadMessage } from './message.js';
 import { Tool, createCodeExecutionTool, createEvaluationTool } from './tool.js';
+import { isContentBlockArray } from './util.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,8 +19,8 @@ const INPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/input/files')
 const anthropic = getClient();
 
 let uploadedFileID: string | undefined;
-export async function addMessage(messages: Message[], role: "user" | "assistant", content: string | [string, string], isFile: boolean = false, text?: string): Promise<Message[]> {
-  let newMessage: Message;
+export async function addMessage(messages: Message[], role: "user" | "assistant", content: string | [string, string] | ContentBlock[], isFile: boolean = false, text?: string): Promise<Message[]> {
+  let newMessage: Message | undefined;
   let safeFilename: string = "";
   let destinationFile: string = "";
   if (isFile && !Array.isArray(content)) {
@@ -29,9 +30,9 @@ export async function addMessage(messages: Message[], role: "user" | "assistant"
     const pdfMessage = createPDFMessage(fileContent);
     const textMessage = createTextMessage(text ?? "");
     newMessage = { role, content: [...pdfMessage, ...textMessage] };
-  } else if (!Array.isArray(content)) {
+  } else if (!Array.isArray(content) || isContentBlockArray(content)) {
     newMessage = { role, content };
-  } else {
+  } else if (!isContentBlockArray(content)){
     safeFilename = path.basename(content[0]);
     destinationFile = path.join(INPUT_DIR_FILES, safeFilename);
     const fileContent = readFileSync(destinationFile, "base64");
@@ -44,7 +45,7 @@ export async function addMessage(messages: Message[], role: "user" | "assistant"
     newMessage = { role, content: [...pdfMessage, ...uploadMessage, ...textMessage] };
   }
   // console.log(JSON.stringify(messages, null, 2));
-  return [...messages, newMessage];
+  return newMessage? [...messages, newMessage] : messages;
 }
 
 function createFullMessage(model: string, messages: Message[], forceJson: boolean = false, temperature: number = 0.7, stop_sequences: string[] = ["```"]): MessageCreateParamsNonStreaming {
@@ -63,9 +64,9 @@ function createFullMessage(model: string, messages: Message[], forceJson: boolea
   };
 }
 
-function createShortMessage(model: string, messages: Message[], forceJson: boolean = false): MessageCreateParamsNonStreaming {
-  const tools: Tool = forceJson
-    ? [...createEvaluationTool(), ...createCodeExecutionTool()]
+function createShortMessage(model: string, messages: Message[], forceJson: boolean = false, claudeTools?: any[]): MessageCreateParamsNonStreaming {
+  const tools: Tool = claudeTools ? claudeTools :
+    forceJson ? [...createEvaluationTool(), ...createCodeExecutionTool()]
     : createCodeExecutionTool();
   return forceJson ? {
     model: model,
@@ -87,12 +88,12 @@ function createShortMessage(model: string, messages: Message[], forceJson: boole
   };
 }
 
-export async function sendMessages(model: string, messages: Message[], forceJson: boolean = false, temperature?: number, stop_sequences?: string[]): Promise<AnthropicMessage> {
+export async function sendMessages(model: string, messages: Message[], forceJson: boolean = false, tools?: any[], temperature?: number, stop_sequences?: string[]): Promise<AnthropicMessage> {
   let fullMessage: MessageCreateParamsNonStreaming;
   if (temperature !== undefined && stop_sequences !== undefined) {
     fullMessage = createFullMessage(model, messages, forceJson, temperature, stop_sequences);
   } else {
-    fullMessage = createShortMessage(model, messages, forceJson);
+    fullMessage = createShortMessage(model, messages, forceJson, tools);
   }
 
   const answer = await anthropic.messages.create(fullMessage);

@@ -1,4 +1,7 @@
 node_modules/
 .env
 output/
+lib/output/
+prompt-eval/output/
 .playwright-mcp/
+lib/.playwright-mcp/

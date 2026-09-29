@@ -1,6 +1,8 @@
+import Anthropic from '@anthropic-ai/sdk';
+
 export type Message = {
   role: "user" | "assistant";
-  content: string | (pdfMessage | textMessage)[] | (pdfMessage | uploadMessage | textMessage)[];
+  content: string | (pdfMessage | textMessage)[] | (pdfMessage | uploadMessage | textMessage)[] | Anthropic.ContentBlock[];
 }
 
 interface pdfMessage {

@@ -1,6 +1,5 @@
-import type { Message } from './lib/chat.js';
+import type { Message } from './lib/message.js';
 import { addMessage, sendMessages } from './lib/chat.js';
-import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
 
 async function main() {
   //Generate a claude dialogue with multiple turns
@@ -20,7 +19,7 @@ async function main() {
   messages = [];
   messages = await addMessage(messages, "user", "Generate a json object containing a random name, age, and city.");
   messages = await addMessage(messages, "assistant", "```json");
-  answer = await sendMessages('claude-haiku-4-5', messages, false, 0.7, ["```"]);
+  answer = await sendMessages('claude-haiku-4-5', messages, false, undefined, 0.7, ["```"]);
   result = answer.content[0].type === "text" ? answer.content[0].text : "";
   console.log("3:\n" + result);
 
