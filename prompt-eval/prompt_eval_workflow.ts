@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, writeFile } from 'fs';
 import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
 import { extract } from '../lib/extract.js';
-import type { Message } from '../lib/chat.js';
+import type { Message } from '../lib/message.js';
 import { addMessage, sendMessages } from '../lib/chat.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
