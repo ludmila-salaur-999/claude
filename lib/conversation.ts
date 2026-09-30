@@ -1,4 +1,3 @@
-import { getClient } from './client.js';
 import { getMCPClient, closeMCPConnection } from './mcp_client.js';
 import Anthropic from '@anthropic-ai/sdk';
 import type { Message } from './message.js';
@@ -6,7 +5,6 @@ import { addMessage, sendMessages } from './chat.js';
 import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types';
 
-const anthropic = getClient();
 const mcpClient = await getMCPClient();
 
 async function getClaudeTools() {
@@ -22,10 +20,10 @@ async function getClaudeTools() {
     return claudeTools;
 }
 
-export async function startConversation() {
+export async function startConversation(prompt: string) {
     const claudeTools = await getClaudeTools();
     let messages: Message[] = [];
-    messages = await addMessage(messages, "user", "Open http://localhost:8080/test.html, find table, extract all data as csv wide format one row per region with all metric columns and save as output2.csv in the workspace root nested folder prompt-eval nested folder output nested folder files.");
+    messages = await addMessage(messages, "user", prompt);
 
     console.log("Запуск диалога with Claude...");
     let keepGoing = true;
@@ -103,6 +101,6 @@ async function callTools(response: AnthropicMessage) {
 }
 
 // TODO fix file download location
-// startConversation().catch(console.error);
+// startConversation("Open http://localhost:8080/test.html, find table, extract all data as csv wide format one row per region with all metric columns and save as output2.csv in the workspace root nested folder prompt-eval nested folder output nested folder files.").catch(console.error);
 
 
