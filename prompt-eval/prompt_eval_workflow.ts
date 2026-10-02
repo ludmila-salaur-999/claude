@@ -7,6 +7,9 @@ import { addMessage, sendMessages } from '../lib/chat.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdirSync } from 'fs';
+import { startConversation as startBashConversation } from '../lib/bash_dialog.js';
+import { BashAgent } from '../agents/bash_agent.js';
+import { createCodeExecutionTool, createEvaluationTool } from '../lib/tool.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,15 +17,18 @@ const INPUT_DIR_JSON = path.resolve(__dirname, '..', 'prompt-eval/input/json');
 const OUTPUT_DIR_JSON = path.resolve(__dirname, '..', 'prompt-eval/output/json');
 mkdirSync(OUTPUT_DIR_JSON, { recursive: true });
 
+const bashAgent = new BashAgent();
+
 async function runPrompt(prompt: string, filename: string): Promise<AnthropicMessage> {
   const answer = await extract(prompt, filename);
   return answer;
 }
 
-async function runEval(prompt: string, files: [string, string]): Promise<AnthropicMessage> {
+async function runEval(prompt: string, files: [string, string]): Promise<AnthropicMessage | undefined> {
   let messages: Message[] = [];
   messages = await addMessage(messages, "user", files, true, prompt);
-  let answer = await sendMessages('claude-sonnet-5', messages, true);
+  const answer = await bashAgent.startConversation(messages, [...createEvaluationTool(), ...createCodeExecutionTool()]);
+  // const answer = await startBashConversation(messages);
   return answer;
 }
 
@@ -82,21 +88,36 @@ async function gradeByModel (prompt: string, files: [string, string], response: 
     '<output>',
     `Uploaded AI generated CSV file '${files[1]}'`,
     '</output>',
-    'Return ONLY valid JSON using double quotes and this exact schema:',
+    'Evaluation format:',
+    'Provide your evaluation as structured JSON object with following fields:',
+    '- "strengths": An array of 1-3 key strengths',
+    '- "weaknesses": An array of 1-3 key areas for improvement',
+    '- "reasoning": A concise explanation of your overall assessment',
+    '- "score": A number between 1-10',
+    'Request to call bash cat with exactly specified path C:\\Users\\Admin\\Documents\\project\\prompt-eval\\output\\files\\output.csv using bash tool to read AI generated content and confirm the accuracy before answering.',
+    'Respond with JSON. Keep your response consise and direct.',
+    'Example response shape:',
     '{',
-    '  "strengths": ["string"],',
-    '  "weaknesses": ["string"],',
-    '  "reasoning": "string",',
-    '  "score": 1',
-    '}',
-    'Keep it concise and direct.'
+    '"strengths": ["string"],',
+    '"weaknesses": ["string"],',
+    '"reasoning": "string",',
+    '"score": 1',
+    '}'
+    // 'Return ONLY valid JSON not mixed with XML markup ready to be parsed as JSON using double quotes and this exact schema:',
+    // '{',
+    // '  "strengths": ["string"],',
+    // '  "weaknesses": ["string"],',
+    // '  "reasoning": "string",',
+    // '  "score": 1',
+    // '}',
+    // 'Keep it concise and direct.'
   ].join('\n');
 
   console.log(evalPrompt);
 
   const evalResponse = await runEval(evalPrompt, files);
 
-  const tool_use_block = evalResponse.content.find(
+  const tool_use_block = evalResponse?.content.find(
       (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
   );
   const json_data = tool_use_block?.input;
@@ -177,6 +198,7 @@ async function runEvalWorkflow(promptsJsonFilename: string, datasetJsonFilename:
     result.push(averageEvalResult);
   } 
   // console.log("Eval workflow completed. Results:", result);
+  bashAgent.closeConnection();
   return result;
 }
 

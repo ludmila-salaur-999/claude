@@ -80,3 +80,17 @@ export function createEvaluationTool() : evaluationTool[] {
     ]
 }
 
+interface bashSessionTool {
+    type: "bash_20250124", 
+    name: "bash"
+}
+
+export function createBashSessionTool() : bashSessionTool[] {
+    return [
+        {
+            type: "bash_20250124", 
+            name: "bash"
+        }        
+    ]
+}
+

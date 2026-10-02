@@ -19,11 +19,11 @@ async function main() {
   messages = [];
   messages = await addMessage(messages, "user", "Generate a json object containing a random name, age, and city.");
   messages = await addMessage(messages, "assistant", "```json");
-  answer = await sendMessages('claude-haiku-4-5', messages, false, undefined, 0.7, ["```"]);
+  answer = await sendMessages('claude-haiku-4-5', messages, undefined, 0.7, ["```"]);
   result = answer.content[0].type === "text" ? answer.content[0].text : "";
   console.log("3:\n" + result);
 
-  //TODO
+  //TEST
   // await answerAsStream(messages).catch(console.error);
 }
 

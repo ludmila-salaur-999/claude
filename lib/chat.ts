@@ -18,7 +18,6 @@ const INPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/input/files')
 
 const anthropic = getClient();
 
-let uploadedFileID: string | undefined;
 export async function addMessage(messages: Message[], role: "user" | "assistant", content: string | [string, string] | ContentBlock[], isFile: boolean = false, text?: string): Promise<Message[]> {
   let newMessage: Message | undefined;
   let safeFilename: string = "";
@@ -40,7 +39,7 @@ export async function addMessage(messages: Message[], role: "user" | "assistant"
     const textMessage = createTextMessage(text ?? "");    
     safeFilename = path.basename(content[1]);
     destinationFile = path.join(OUTPUT_DIR_FILES, safeFilename);    
-    uploadedFileID = await uploadFile(destinationFile);
+    const uploadedFileID = await uploadFile(destinationFile);
     const uploadMessage = createUploadMessage(uploadedFileID);
     newMessage = { role, content: [...pdfMessage, ...uploadMessage, ...textMessage] };
   }
@@ -48,10 +47,7 @@ export async function addMessage(messages: Message[], role: "user" | "assistant"
   return newMessage? [...messages, newMessage] : messages;
 }
 
-function createFullMessage(model: string, messages: Message[], forceJson: boolean = false, temperature: number = 0.7, stop_sequences: string[] = ["```"]): MessageCreateParamsNonStreaming {
-  const tools: Tool = forceJson
-    ? [...createEvaluationTool(), ...createCodeExecutionTool()]
-    : createCodeExecutionTool();
+function createFullMessage(model: string, messages: Message[], temperature: number = 0.7, stop_sequences: string[] = ["```"]): MessageCreateParamsNonStreaming {
   return {
     model: model,
     max_tokens: 1024,
@@ -59,16 +55,12 @@ function createFullMessage(model: string, messages: Message[], forceJson: boolea
     temperature: temperature,
     // stop_sequences: stop_sequences, 
     // system: system,
-    tools: tools
-    // TODO add forceJson clause if needed
+    // tools: tools
   };
 }
 
-function createShortMessage(model: string, messages: Message[], forceJson: boolean = false, claudeTools?: any[]): MessageCreateParamsNonStreaming {
-  const tools: Tool = claudeTools ? claudeTools :
-    forceJson ? [...createEvaluationTool(), ...createCodeExecutionTool()]
-    : createCodeExecutionTool();
-  return forceJson ? {
+function createShortMessage(model: string, messages: Message[], tools?: any[]): MessageCreateParamsNonStreaming {
+  return {
     model: model,
     max_tokens: 3024,
     thinking: {
@@ -76,35 +68,22 @@ function createShortMessage(model: string, messages: Message[], forceJson: boole
     },
     messages: messages,
     tools: tools,
-    tool_choice: {"type": "tool", "name": "submit_evaluation"},
-  } : {
-    model: model,
-    max_tokens: 3024,
-    thinking: {
-      type: "disabled"
-    },
-    messages: messages,
-    tools: tools
+    tool_choice: {"type": "any"} //"tool", "name": "submit_evaluation"},
   };
 }
 
-export async function sendMessages(model: string, messages: Message[], forceJson: boolean = false, tools?: any[], temperature?: number, stop_sequences?: string[]): Promise<AnthropicMessage> {
+export async function sendMessages(model: string, messages: Message[], tools?: any[], temperature?: number, stop_sequences?: string[]): Promise<AnthropicMessage> {
   let fullMessage: MessageCreateParamsNonStreaming;
   if (temperature !== undefined && stop_sequences !== undefined) {
-    fullMessage = createFullMessage(model, messages, forceJson, temperature, stop_sequences);
+    fullMessage = createFullMessage(model, messages, temperature, stop_sequences);
   } else {
-    fullMessage = createShortMessage(model, messages, forceJson, tools);
+    fullMessage = createShortMessage(model, messages, tools);
   }
 
   const answer = await anthropic.messages.create(fullMessage);
   
   // Extract the file IDs from the response and download each created file
   await downloadFile(answer);
-  
-  if (uploadedFileID) {
-    await deleteFiles(uploadedFileID);
-    uploadedFileID = undefined;
-  }
 
   return answer;
 }
