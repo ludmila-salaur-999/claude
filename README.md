@@ -11,6 +11,30 @@ node -v
 npm -v
 ```
 
+## 1a) Install a bash wrapper on Windows
+
+This project includes a bash session helper that looks for `bash.exe` on Windows. If you are using Windows, install Git for Windows (which includes Git Bash) and make sure the Git bin folder is available in your PATH.
+
+Install Git for Windows from:
+
+```text
+https://git-scm.com/download/win
+```
+
+After installation, verify that bash is available:
+
+```powershell
+bash --version
+```
+
+If `bash` is not recognized, add this folder to your PATH and reopen the terminal:
+
+```text
+C:\Program Files\Git\bin
+```
+
+Alternatively, you can install Git Bash and then run the project from a Git Bash terminal.
+
 ## 2) Install TypeScript in the project
 
 From the project root:

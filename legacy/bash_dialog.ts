@@ -1,7 +1,7 @@
 import { BashSession } from '../tools/bash_session.js';
-import { addMessage, sendMessages } from './chat.js';
-import { Message } from './message.js';
-import { createBashSessionTool, createCodeExecutionTool, createEvaluationTool } from './tool.js';
+import { addMessage, sendMessages } from '../lib/chat.js';
+import { Message } from '../lib/message.js';
+import { createBashSessionTool, createCodeExecutionTool, createEvaluationTool } from '../lib/tool.js';
 import Anthropic from '@anthropic-ai/sdk';
 
 const bashSession = new BashSession();
@@ -32,12 +32,12 @@ export async function startConversation(messages: Message[]) {
                             bashSession.restart();
                             result = "Bash session restarted";
                         } else if (input.command) {
-                            // const validation = bashSession.validateCommand(input.command as string);
-                            // if (!validation.ok) {
-                            //     result = `Command validation failed: ${validation.reason}`;
-                            // } else {
+                            const validation = bashSession.validateCommand(input.command as string);
+                            if (!validation.ok) {
+                                result = `Command validation failed: ${validation.reason}`;
+                            } else {
                                 result = await bashSession.executeCommand(input.command as string);
-                            // }
+                            }
                         }
 
                         // One tool_result per tool_use block, all returned in the next user message
@@ -59,7 +59,7 @@ export async function startConversation(messages: Message[]) {
             } else {
                 console.log("No tool results to send back to Claude.");
                 keepGoing = false; // Exit the loop if there are no tool results
-                // bashSession.close();
+                bashSession.close();
                 return response;
             }            
         } else {
@@ -71,7 +71,7 @@ export async function startConversation(messages: Message[]) {
             // if (textResponse && 'text' in textResponse) {
             //     console.log(`\nAnswer from Claude:\n${textResponse.text}`);
             // }
-            // bashSession.close();
+            bashSession.close();
             return response; // Return the final response when the conversation ends
         }
     }

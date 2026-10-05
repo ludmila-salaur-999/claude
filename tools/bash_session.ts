@@ -5,12 +5,12 @@ import { createInterface, type Interface } from "node:readline";
 import { randomUUID } from "node:crypto";
 
 const ALLOWED_COMMANDS = new Set([
-  "ls",
+  // "ls",
   "cat",
   "echo",
-  "pwd",
+  // "pwd",
   "grep",
-  "find",
+  // "find",
   "wc",
   "head",
   "tail"

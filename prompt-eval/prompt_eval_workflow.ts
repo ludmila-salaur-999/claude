@@ -7,7 +7,7 @@ import { addMessage, sendMessages } from '../lib/chat.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdirSync } from 'fs';
-import { startConversation as startBashConversation } from '../lib/bash_dialog.js';
+// import { startConversation as startBashConversation } from '../legacy/bash_dialog.js';
 import { BashAgent } from '../agents/bash_agent.js';
 import { createCodeExecutionTool, createEvaluationTool } from '../lib/tool.js';
 
@@ -26,7 +26,7 @@ async function runPrompt(prompt: string, filename: string): Promise<AnthropicMes
 
 async function runEval(prompt: string, files: [string, string]): Promise<AnthropicMessage | undefined> {
   let messages: Message[] = [];
-  messages = await addMessage(messages, "user", files, true, prompt);
+  messages = await addMessage(messages, "user", prompt, files);
   const answer = await bashAgent.startConversation(messages, [...createEvaluationTool(), ...createCodeExecutionTool()]);
   // const answer = await startBashConversation(messages);
   return answer;
@@ -103,14 +103,6 @@ async function gradeByModel (prompt: string, files: [string, string], response: 
     '"reasoning": "string",',
     '"score": 1',
     '}'
-    // 'Return ONLY valid JSON not mixed with XML markup ready to be parsed as JSON using double quotes and this exact schema:',
-    // '{',
-    // '  "strengths": ["string"],',
-    // '  "weaknesses": ["string"],',
-    // '  "reasoning": "string",',
-    // '  "score": 1',
-    // '}',
-    // 'Keep it concise and direct.'
   ].join('\n');
 
   console.log(evalPrompt);

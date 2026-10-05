@@ -1,7 +1,7 @@
 import { getClient } from '../lib/client.js';
 import Anthropic from '@anthropic-ai/sdk';
-import type { Message } from '../lib/chat.js';
-import { addMessage, sendMessages } from '../lib/chat.js';
+import type { Message } from '../lib/message.js';
+import { addMessage } from '../lib/chat.js';
 
 const anthropic = getClient();
 
@@ -39,7 +39,7 @@ const prompt_text =
   "}\n"
 
 let messages: Message[] = [];
-messages = await addMessage(messages, "user", ["test10.pdf", "output.csv"], true, prompt_text);
+messages = await addMessage(messages, "user", prompt_text, ["test10.pdf", "output.csv"]);
 // let answer = await sendMessages('claude-sonnet-5', messages);
 
 // # 3. Делаем запрос к API с принудительным вызовом

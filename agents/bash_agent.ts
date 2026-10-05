@@ -45,12 +45,12 @@ export class BashAgent extends Conversation {
                         this.bashSession?.restart();
                         result = "Bash session restarted";
                     } else if (input.command) {
-                        // const validation = bashSession.validateCommand(input.command as string);
-                        // if (!validation.ok) {
-                        //     result = `Command validation failed: ${validation.reason}`;
-                        // } else {
+                        const validation = this.bashSession?.validateCommand(input.command as string);
+                        if (!validation?.ok) {
+                            result = `Command validation failed: ${validation?.reason}`;
+                        } else {
                             result = await this.bashSession?.executeCommand(input.command as string) ?? "Cannot execute command.";
-                        // }
+                        }
                     }
                     // One tool_result per tool_use block, all returned in the next user message
                     toolResults.push({ type: "tool_result", tool_use_id: block.id, content: result });

@@ -5,7 +5,7 @@ import { createCodeExecutionTool } from './tool.js';
 
 export async function extract(prompt: string, filename: string): Promise<AnthropicMessage> {
   let messages: Message[] = [];
-  messages = await addMessage(messages, "user", filename, true, prompt);
+  messages = await addMessage(messages, "user", prompt, filename);
   let answer = await sendMessages('claude-sonnet-5', messages, createCodeExecutionTool());
   return answer;
 }

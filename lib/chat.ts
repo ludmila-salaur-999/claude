@@ -15,33 +15,45 @@ const __dirname = path.dirname(__filename);
 const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/output/files');
 mkdirSync(OUTPUT_DIR_FILES, { recursive: true });
 const INPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/input/files');
+const INPUT_DIR_SCENARIOS = path.resolve(__dirname, '..', 'scenarios');
 
 const anthropic = getClient();
 
-export async function addMessage(messages: Message[], role: "user" | "assistant", content: string | [string, string] | ContentBlock[], isFile: boolean = false, text?: string): Promise<Message[]> {
+export async function addMessage(messages: Message[], role: "user" | "assistant", content: string | ContentBlock[], files?: string | [string, string], isCsvOnly: boolean = false): Promise<Message[]> {
   let newMessage: Message | undefined;
   let safeFilename: string = "";
   let destinationFile: string = "";
-  if (isFile && !Array.isArray(content)) {
-    safeFilename = path.basename(content);
-    destinationFile = path.join(INPUT_DIR_FILES, safeFilename);
-    const fileContent = readFileSync(destinationFile, "base64");
-    const pdfMessage = createPDFMessage(fileContent);
-    const textMessage = createTextMessage(text ?? "");
-    newMessage = { role, content: [...pdfMessage, ...textMessage] };
-  } else if (!Array.isArray(content) || isContentBlockArray(content)) {
+  if (!files) {
     newMessage = { role, content };
-  } else if (!isContentBlockArray(content)){
-    safeFilename = path.basename(content[0]);
+  } else if (files && !Array.isArray(files) && !isContentBlockArray(content)) {
+    safeFilename = path.basename(files);
     destinationFile = path.join(INPUT_DIR_FILES, safeFilename);
     const fileContent = readFileSync(destinationFile, "base64");
     const pdfMessage = createPDFMessage(fileContent);
-    const textMessage = createTextMessage(text ?? "");    
-    safeFilename = path.basename(content[1]);
+    const textMessage = createTextMessage(content);
+    newMessage = { role, content: [...pdfMessage, ...textMessage] };
+  } else if (files && Array.isArray(files) && !isCsvOnly && !isContentBlockArray(content)){
+    safeFilename = path.basename(files[0]);
+    destinationFile = path.join(INPUT_DIR_FILES, safeFilename);
+    const fileContent = readFileSync(destinationFile, "base64");
+    const pdfMessage = createPDFMessage(fileContent);   
+    safeFilename = path.basename(files[1]);
     destinationFile = path.join(OUTPUT_DIR_FILES, safeFilename);    
     const uploadedFileID = await uploadFile(destinationFile);
     const uploadMessage = createUploadMessage(uploadedFileID);
+    const textMessage = createTextMessage(content); 
     newMessage = { role, content: [...pdfMessage, ...uploadMessage, ...textMessage] };
+  } else if (files && Array.isArray(files) && isCsvOnly && !isContentBlockArray(content)){
+    safeFilename = path.basename(files[0]);
+    destinationFile = path.join(INPUT_DIR_SCENARIOS, safeFilename);
+    let uploadedFileID = await uploadFile(destinationFile);
+    const uploadMessage1 = createUploadMessage(uploadedFileID);   
+    safeFilename = path.basename(files[1]);
+    destinationFile = path.join(INPUT_DIR_SCENARIOS, safeFilename);    
+    uploadedFileID = await uploadFile(destinationFile);
+    const uploadMessage2 = createUploadMessage(uploadedFileID);
+    const textMessage = createTextMessage(content); 
+    newMessage = { role, content: [...uploadMessage1, ...uploadMessage2, ...textMessage] };
   }
   // console.log(JSON.stringify(messages, null, 2));
   return newMessage? [...messages, newMessage] : messages;
@@ -60,15 +72,22 @@ function createFullMessage(model: string, messages: Message[], temperature: numb
 }
 
 function createShortMessage(model: string, messages: Message[], tools?: any[]): MessageCreateParamsNonStreaming {
-  return {
+  return tools ? {
     model: model,
-    max_tokens: 3024,
+    max_tokens: 6024,
     thinking: {
       type: "disabled"
     },
     messages: messages,
     tools: tools,
     tool_choice: {"type": "any"} //"tool", "name": "submit_evaluation"},
+  } : {
+    model: model,
+    max_tokens: 1024,
+    thinking: { 
+      type: "disabled"
+    },
+    messages: messages
   };
 }
 
