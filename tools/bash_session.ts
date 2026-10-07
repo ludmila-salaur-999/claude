@@ -3,13 +3,29 @@ import { existsSync } from "node:fs";
 import { delimiter, dirname, join } from "node:path";
 import { createInterface, type Interface } from "node:readline";
 import { randomUUID } from "node:crypto";
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+const env = {
+  ...process.env,
+  // INPUT_DIR: "C:\\Users\\Admin\\Documents\\project\\scenarios",
+};
 
 const ALLOWED_COMMANDS = new Set([
   // "ls",
+  // ">",
+  // "cp",
+  // "cd",
   "cat",
-  "echo",
+  // "$INPUT_DIR",
+  // "echo",
   // "pwd",
-  "grep",
+  // "grep",
   // "find",
   "wc",
   "head",
@@ -51,6 +67,7 @@ export class BashSession {
   private start(): void {
     const bashPath = getBashPath();
     this.process = spawn(bashPath, process.platform === "win32" ? ["--login"] : [], {
+      env,
       detached: true // own process group: a timeout can kill every child
     });
     this.process.stdin.write("exec 2>&1\n"); // interleave errors with output, in order
