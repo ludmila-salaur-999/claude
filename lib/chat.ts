@@ -1,21 +1,21 @@
 import { ContentBlock, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources.js';
 import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
-import 'dotenv/config'; // Automatically loads your .env file
+import dotenv from 'dotenv'; // Automatically loads your .env file
 import { mkdirSync, readFileSync } from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getClient } from './client.js';
 import { uploadFile, downloadFile, deleteFiles } from './file_util.js';
 import { Message, createPDFMessage, createTextMessage, createUploadMessage } from './message.js';
-import { Tool, createCodeExecutionTool, createEvaluationTool } from './tool.js';
+import { createCodeExecutionTool } from './tool.js';
 import { isContentBlockArray } from './util.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/output/files');
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', process.env.OUTPUT_DIR_FILES ?? 'output/files');
 mkdirSync(OUTPUT_DIR_FILES, { recursive: true });
-const INPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/input/files');
-const INPUT_DIR_SCENARIOS = path.resolve(__dirname, '..', 'scenarios');
+const INPUT_DIR_FILES = path.resolve(__dirname, '..', process.env.INPUT_DIR_FILES ?? 'input/files');
 
 const anthropic = getClient();
 
@@ -45,11 +45,11 @@ export async function addMessage(messages: Message[], role: "user" | "assistant"
     newMessage = { role, content: [...pdfMessage, ...uploadMessage, ...textMessage] };
   } else if (files && Array.isArray(files) && isCsvOnly && !isContentBlockArray(content)){
     safeFilename = path.basename(files[0]);
-    destinationFile = path.join(INPUT_DIR_SCENARIOS, safeFilename);
+    destinationFile = path.join(OUTPUT_DIR_FILES, safeFilename);
     let uploadedFileID = await uploadFile(destinationFile);
     const uploadMessage1 = createUploadMessage(uploadedFileID);   
     safeFilename = path.basename(files[1]);
-    destinationFile = path.join(INPUT_DIR_SCENARIOS, safeFilename);    
+    destinationFile = path.join(OUTPUT_DIR_FILES, safeFilename);    
     uploadedFileID = await uploadFile(destinationFile);
     const uploadMessage2 = createUploadMessage(uploadedFileID);
     const textMessage = createTextMessage(content); 

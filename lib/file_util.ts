@@ -3,10 +3,15 @@ import { toFile } from '@anthropic-ai/sdk';
 import { createReadStream } from 'fs';
 import { mkdirSync, writeFile } from 'fs';
 import path from 'node:path';
+import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
 
 const anthropic = getClient();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export async function uploadFile(filename: string) : Promise<string> {
     const uploaded = await anthropic.files.upload({
@@ -39,10 +44,9 @@ export async function downloadFile(answer: AnthropicMessage) {
   }    
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', 'prompt-eval/output/files');
+const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', process.env.OUTPUT_DIR_FILES ?? 'output/files');
 mkdirSync(OUTPUT_DIR_FILES, { recursive: true });
+
 function saveGeneratedFile(filename: string, buffer: Buffer): void {
   const safeFilename = path.basename(filename);
   const destination = path.join(OUTPUT_DIR_FILES, safeFilename);

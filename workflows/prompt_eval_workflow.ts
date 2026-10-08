@@ -3,19 +3,22 @@ import { readFileSync, writeFile } from 'fs';
 import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
 import { extract } from '../lib/extract.js';
 import type { Message } from '../lib/message.js';
-import { addMessage, sendMessages } from '../lib/chat.js';
+import { addMessage } from '../lib/chat.js';
 import path from 'node:path';
+import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { mkdirSync } from 'fs';
-// import { startConversation as startBashConversation } from '../legacy/bash_dialog.js';
 import { BashAgent } from '../agents/bash_agent.js';
 import { createCodeExecutionTool, createEvaluationTool } from '../lib/tool.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const INPUT_DIR_JSON = path.resolve(__dirname, '..', 'prompt-eval/input/json');
-const OUTPUT_DIR_JSON = path.resolve(__dirname, '..', 'prompt-eval/output/json');
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', process.env.OUTPUT_DIR_FILES ?? 'output/files');
+const INPUT_DIR_JSON = path.resolve(__dirname, '..', process.env.INPUT_DIR_JSON ?? 'input/json');
+const OUTPUT_DIR_JSON = path.resolve(__dirname, '..', process.env.OUTPUT_DIR_JSON ?? 'output/json');
 mkdirSync(OUTPUT_DIR_JSON, { recursive: true });
+mkdirSync(OUTPUT_DIR_FILES, { recursive: true });
 
 const bashAgent = new BashAgent();
 
@@ -94,7 +97,7 @@ async function gradeByModel (prompt: string, files: [string, string], response: 
     '- "weaknesses": An array of 1-3 key areas for improvement',
     '- "reasoning": A concise explanation of your overall assessment',
     '- "score": A number between 1-10',
-    'Request to call bash cat with exactly specified path C:\\Users\\Admin\\Documents\\project\\prompt-eval\\output\\files\\output.csv using bash tool to read AI generated content and confirm the accuracy before answering.',
+    `Request to call bash cat with exactly specified path ${OUTPUT_DIR_FILES}\\${files[1]} using bash tool to read AI generated content and confirm the accuracy before answering.`,
     'Respond with JSON. Keep your response consise and direct.',
     'Example response shape:',
     '{',
