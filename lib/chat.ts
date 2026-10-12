@@ -5,7 +5,7 @@ import { mkdirSync, readFileSync } from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getClient } from './client.js';
-import { uploadFile, downloadFile, deleteFiles } from './file_util.js';
+import { uploadFile, downloadFile } from './file_util.js';
 import { Message, createPDFMessage, createTextMessage, createUploadMessage } from './message.js';
 import { createCodeExecutionTool } from './tool.js';
 import { isContentBlockArray } from './util.js';

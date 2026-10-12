@@ -8,6 +8,7 @@
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f4f4f4; }
+    button { margin-top: 16px; margin-right: 8px; padding: 8px 14px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -29,207 +30,74 @@
         <th>Q3</th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
-        <td rowspan="2">North</td>
-        <td>1200</td>
-        <td>1500</td>
-        <td>1700</td>
-        <td rowspan="2">4400</td>
-      </tr>
-      <tr>
-        <td>1234.567</td>
-        <td>4567.89</td>
-        <td>345.67</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">South</td>
-        <td>900</td>
-        <td>1100</td>
-        <td>1300</td>
-        <td rowspan="2">3300</td>
-      </tr>
-      <tr>
-        <td>6789.567</td>
-        <td>2345.89</td>
-        <td>1212.67</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">East</td>
-        <td>1230</td>
-        <td>1100</td>
-        <td>1705</td>
-        <td rowspan="2">4400</td>
-      </tr>
-      <tr>
-        <td>1211.567</td>
-        <td>4511.89</td>
-        <td>345.11</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">West</td>
-        <td>800</td>
-        <td>950</td>
-        <td>1200</td>
-        <td rowspan="2">2950</td>
-      </tr>
-      <tr>
-        <td>5678.567</td>
-        <td>2345.89</td>
-        <td>1212.67</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">One</td>
-        <td>1400</td>
-        <td>1660</td>
-        <td>1770</td>
-        <td rowspan="2">4400</td>
-      </tr>
-      <tr>
-        <td>1288.567</td>
-        <td>4999.89</td>
-        <td>345.01</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">Two</td>
-        <td>1000</td>
-        <td>1200</td>
-        <td>1500</td>
-        <td rowspan="2">3700</td>
-      </tr>
-      <tr>
-        <td>6789.567</td>
-        <td>2345.89</td>
-        <td>1212.67</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">Three</td>
-        <td>1300</td>
-        <td>1400</td>
-        <td>1600</td>
-        <td rowspan="2">4300</td>
-      </tr>
-      <tr>
-        <td>1211.567</td>
-        <td>4511.89</td>
-        <td>345.11</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">Four</td>
-        <td>900</td>
-        <td>1100</td>
-        <td>1300</td>
-        <td rowspan="2">3300</td>
-      </tr>
-      <tr>
-        <td>5678.567</td>
-        <td>2345.89</td>
-        <td>1212.67</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">Five</td>
-        <td>1400</td>
-        <td>1660</td>
-        <td>1770</td>
-        <td rowspan="2">4400</td>
-      </tr>
-      <tr>
-        <td>1288.567</td>
-        <td>4999.89</td>
-        <td>345.01</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">Six</td>
-        <td>1000</td>
-        <td>1200</td>
-        <td>1500</td>
-        <td rowspan="2">3700</td>
-      </tr>
-      <tr>
-        <td>6789.567</td>
-        <td>2345.89</td>
-        <td>1212.67</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">Seven</td>
-        <td>1300</td>
-        <td>1400</td>
-        <td>1600</td>
-        <td rowspan="2">4300</td>
-      </tr>
-      <tr>
-        <td>1211.567</td>
-        <td>4511.89</td>
-        <td>345.11</td>
-      </tr>
-
-      <tr>
-        <td rowspan="2">Eight</td>
-        <td>900</td>
-        <td>1100</td>
-        <td>1300</td>
-        <td rowspan="2">3300</td>
-      </tr>
-      <tr>
-        <td>5678.567</td>
-        <td>2345.89</td>
-        <td>1212.67</td>
-      </tr>
-    </tbody>
+    <tbody id="reportBody"></tbody>
   </table>
 
   <button id="downloadPDF">Download as PDF</button>
+  <button id="downloadScenarioPDF">Download Scenario as PDF</button>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script>
-    document.getElementById('downloadPDF').addEventListener('click', () => {
+    // Each region = two split rows (top, bottom) plus a total spanning both.
+    const DATA = [
+      { name: 'North', top: [1200, 1500, 1700], bottom: [1234.567, 4567.89, 345.67],  total: 4400 },
+      { name: 'South', top: [900, 1100, 1300],  bottom: [6789.567, 2345.89, 1212.67], total: 3300 },
+      { name: 'East',  top: [1230, 1100, 1705], bottom: [1211.567, 4511.89, 345.11],  total: 4400 },
+      { name: 'West',  top: [800, 950, 1200],   bottom: [5678.567, 2345.89, 1212.67], total: 2950 },
+      { name: 'One',   top: [1400, 1660, 1770], bottom: [1288.567, 4999.89, 345.01],  total: 4400 },
+      { name: 'Two',   top: [1000, 1200, 1500], bottom: [6789.567, 2345.89, 1212.67], total: 3700 },
+      { name: 'Three', top: [1300, 1400, 1600], bottom: [1211.567, 4511.89, 345.11],  total: 4300 },
+      { name: 'Four',  top: [900, 1100, 1300],  bottom: [5678.567, 2345.89, 1212.67], total: 3300 },
+      { name: 'Five',  top: [1400, 1660, 1770], bottom: [1288.567, 4999.89, 345.01],  total: 4400 },
+      { name: 'Six',   top: [1000, 1200, 1500], bottom: [6789.567, 2345.89, 1212.67], total: 3700 },
+      { name: 'Seven', top: [1300, 1400, 1600], bottom: [1211.567, 4511.89, 345.11],  total: 4300 },
+      { name: 'Eight', top: [900, 1100, 1300],  bottom: [5678.567, 2345.89, 1212.67], total: 3300 }
+    ];
+
+    // ---------- helpers ----------
+    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const randTop = () => randInt(700, 2000);                                   // integer-style value
+    const randBottom = () => Math.round((Math.random() * 7000 + 200) * 100) / 100; // decimal-style value
+    const clone = obj => JSON.parse(JSON.stringify(obj));
+
+    // ---------- render HTML table from data ----------
+    function renderTable() {
+      const tbody = document.getElementById('reportBody');
+      tbody.innerHTML = DATA.map(r => `
+        <tr>
+          <td rowspan="2">${r.name}</td>
+          ${r.top.map(v => `<td>${v}</td>`).join('')}
+          <td rowspan="2">${r.total}</td>
+        </tr>
+        <tr>
+          ${r.bottom.map(v => `<td>${v}</td>`).join('')}
+        </tr>`).join('');
+    }
+    renderTable();
+
+    // ---------- PDF builder ----------
+    function buildPdf(regions, headers, subHeaders, fileName) {
       const { jsPDF } = window.jspdf;
-
-      const body = [
-        ['North', 1200, 1500, 1700, 4400],
-        ['', 1234.567, 4567.89, 345.67, ''],
-        ['South', 900, 1100, 1300, 3300],
-        ['', 6789.567, 2345.89, 1212.67, ''],
-        ['East', 1230, 1100, 1705, 4400],
-        ['', 1211.567, 4511.89, 345.11, ''],
-        ['West', 800, 950, 1200, 2950],
-        ['', 5678.567, 2345.89, 1212.67, ''],
-        ['One', 1400, 1660, 1770, 4400],
-        ['', 1288.567, 4999.89, 345.01, ''],
-        ['Two', 1000, 1200, 1500, 3700],
-        ['', 6789.567, 2345.89, 1212.67, ''],
-        ['Three', 1300, 1400, 1600, 4300],
-        ['', 1211.567, 4511.89, 345.11, ''],
-        ['Four', 900, 1100, 1300, 3300],
-        ['', 5678.567, 2345.89, 1212.67, ''],
-        ['Five', 1400, 1660, 1770, 4400],
-        ['', 1288.567, 4999.89, 345.01, ''],
-        ['Six', 1000, 1200, 1500, 3700],
-        ['', 6789.567, 2345.89, 1212.67, ''],
-        ['Seven', 1300, 1400, 1600, 4300],
-        ['', 1211.567, 4511.89, 345.11, ''],
-        ['Eight', 900, 1100, 1300, 3300],
-        ['', 5678.567, 2345.89, 1212.67, '']
-      ];
-
       const doc = new jsPDF();
-      doc.text("Sales Report", 14, 12);
+      doc.text('Sales Report', 14, 12);
+
+      const body = [];
+      regions.forEach(r => {
+        body.push([
+          { content: r.name, rowSpan: 2, styles: { valign: 'middle' } },
+          ...r.top,
+          { content: r.total, rowSpan: 2, styles: { valign: 'middle' } }
+        ]);
+        body.push([...r.bottom]);
+      });
 
       doc.autoTable({
         head: [
-          ['Region', 'R1', 'R2', 'R3', 'Total'],
-          ['', 'Q1', 'Q2', 'Q3', '']
+          [{ content: 'Region', rowSpan: 2, styles: { valign: 'middle' } },
+           ...headers,
+           { content: 'Total', rowSpan: 2, styles: { valign: 'middle' } }],
+          [...subHeaders]
         ],
         body,
         startY: 20,
@@ -237,35 +105,73 @@
         headStyles: {
           fillColor: [240, 240, 240],
           textColor: [0, 0, 0],
-          fontStyle: 'bold'
+          fontStyle: 'bold',
+          halign: 'center'
         },
-        styles: {
-          fontSize: 8,
-          cellPadding: 3
-        },
-        didParseCell: function(data) {
-          if (data.section === 'head') {
-            if (data.row.index === 1 && (data.column.index === 0 || data.column.index === 4)) {
-              data.cell.text = '';
-            }
-          }
+        styles: { fontSize: 8, cellPadding: 3, halign: 'center' }
+      });
 
-          if (data.section === 'body') {
-            if (data.column.index === 0 || data.column.index === 4) {
-              if (data.row.index % 2 === 0) {
-                data.cell.rowSpan = 2;
-                data.cell.styles.valign = 'middle';
-              } else {
-                data.cell.text = '';
-                data.cell.styles.fillColor = [255, 255, 255];
-                data.cell.styles.textColor = [255, 255, 255];
-              }
-            }
-          }
-        }
+      doc.save(fileName);
+    }
+
+    // ---------- original download ----------
+    // Reads the table exactly as displayed (headers, rowspans, values) straight from the DOM
+    document.getElementById('downloadPDF').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text('Sales Report', 14, 12);
+
+      doc.autoTable({
+        html: '#reportTable',
+        startY: 20,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [240, 240, 240],
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          halign: 'center',
+          valign: 'middle'
+        },
+        styles: { fontSize: 8, cellPadding: 3, halign: 'center', valign: 'middle' }
       });
 
       doc.save('test.pdf');
+    });
+
+    // ---------- scenario download ----------
+    document.getElementById('downloadScenarioPDF').addEventListener('click', () => {
+      const regions = clone(DATA);
+
+      // 1) Remove one entire split row (a region's two rows) from the middle
+      const lo = Math.floor(regions.length / 3);
+      const hi = Math.ceil((regions.length * 2) / 3) - 1;
+      regions.splice(randInt(lo, hi), 1);
+
+      // 2) Insert one extra column in the middle of the data columns (between R2 and R3)
+      const mid = 2;
+      regions.forEach(r => {
+        r.top.splice(mid, 0, randTop());
+        r.bottom.splice(mid, 0, randBottom());
+      });
+      const headers = ['R1', 'R2', 'R4', 'R3'];
+      const subHeaders = ['Q1', 'Q2', 'Q4', 'Q3'];
+
+      // 3) Change three randomly selected number values (Total cells excluded)
+      const cells = [];
+      regions.forEach((r, ri) => {
+        r.top.forEach((_, ci) => cells.push({ ri, row: 'top', ci }));
+        r.bottom.forEach((_, ci) => cells.push({ ri, row: 'bottom', ci }));
+      });
+      for (let i = 0; i < 3; i++) {
+        const c = cells.splice(randInt(0, cells.length - 1), 1)[0];
+        const arr = regions[c.ri][c.row];
+        const old = arr[c.ci];
+        let nv;
+        do { nv = c.row === 'top' ? randTop() : randBottom(); } while (nv === old);
+        arr[c.ci] = nv;
+      }
+
+      buildPdf(regions, headers, subHeaders, 'scenario.pdf');
     });
   </script>
 

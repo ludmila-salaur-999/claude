@@ -13,11 +13,13 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const env = {
   ...process.env,
-  // INPUT_DIR: "C:\\Users\\Admin\\Documents\\project\\scenarios",
+  INPUT_DIR: "C:\\Users\\Admin\\Documents\\project\\output\\files",
 };
 
 const ALLOWED_COMMANDS = new Set([
   // "ls",
+  // "&&",
+  // "|",
   // ">",
   // "cp",
   // "cd",
@@ -27,9 +29,11 @@ const ALLOWED_COMMANDS = new Set([
   // "pwd",
   // "grep",
   // "find",
-  "wc",
-  "head",
-  "tail"
+  // "wc",
+  // "head",
+  // "tail",
+  // "awk",
+  // "diff"
 ]);
 const SHELL_OPERATORS = new Set(["&&", "||", "|", ";", "&", ">", "<", ">>"]);
 

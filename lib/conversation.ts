@@ -19,11 +19,13 @@ export abstract class Conversation implements Agent {
 
         console.log("Запуск диалога with Claude...");
         let keepGoing = true;
+        let numberOfIterations = 0;
 
         // 4. Запускаем бесконечный цикл обработки ответов (Agent Loop)
-        while (keepGoing) {    
+        while (keepGoing && numberOfIterations < 20) {    
             const response = await sendMessages("claude-sonnet-5", messages, allTools);
             messages = await addMessage(messages, "assistant", response.content);
+            numberOfIterations++;
 
             // Если Клод решил, что для ответа нужно вызвать инструмент (tool_use)
             if (response.stop_reason === "tool_use") {
@@ -42,7 +44,13 @@ export abstract class Conversation implements Agent {
                 // Если стоп-сигнал не tool_use, значит Клод закончил работу и сформировал финальный ответ
                 keepGoing = false;
                 return response; // Return the final response when the conversation ends
-            }              
+            }  
+            
+            if (keepGoing && numberOfIterations >= 20) {
+                console.log("Maximum number of iterations reached. Ending conversation.");
+                keepGoing = false;
+                return undefined; // Return undefined if the maximum number of iterations is reached
+            }
         } 
     }
 }

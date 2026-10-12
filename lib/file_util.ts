@@ -1,7 +1,8 @@
 import { getClient } from './client.js';
 import { toFile } from '@anthropic-ai/sdk';
 import { createReadStream } from 'fs';
-import { mkdirSync, writeFile } from 'fs';
+import * as fs from 'fs/promises';
+import { mkdirSync, writeFile, readFileSync } from 'fs';
 import path from 'node:path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
@@ -60,6 +61,74 @@ function saveGeneratedFile(filename: string, buffer: Buffer): void {
   });
 }
 
+export async function copyFile(fileName: string, sourcePath: string, destinationPath: string): Promise<boolean> {
+  const latestFile = await getLatestFile(sourcePath);
+  if (latestFile && latestFile.name.indexOf('.pdf') !== -1 && 
+    latestFile.name.indexOf(fileName.substring(0, fileName.indexOf('.pdf'))) !== -1 && 
+    latestFile.mtime > new Date(Date.now() - 5 * 60 * 1000)) {
+    const sourceFilePath = path.join(sourcePath, latestFile.name);
+    const destinationFilePath = path.join(destinationPath, fileName);
+    const fileContent = readFileSync(sourceFilePath, 'base64');
+    writeFile(destinationFilePath, fileContent, 'base64', (err) => {
+      if (err) {
+        console.error(`Failed to copy ${fileName}:`, err);
+        return;
+      }
+      console.log(`Copied: ${fileName} -> ${destinationFilePath}`);
+    });
+  } else {
+    console.log(`No recent PDF file found for ${fileName} in ${sourcePath}`);
+    return false;
+  }
+  return true;
+}
+
+interface FileInfo {
+  name: string;
+  path: string;
+  mtime: Date; // Время последнего изменения файла
+}
+
+async function getLatestFile(dirPath: string): Promise<FileInfo | null> {
+  try {
+    const files = await fs.readdir(dirPath);
+    
+    if (files.length === 0) {
+      return null;
+    }
+
+    // Собираем пути ко всем файлам
+    const fileStats = await Promise.all(
+      files.map(async (file) => {
+        const fullPath = path.join(dirPath, file);
+        const stat = await fs.stat(fullPath);
+        return { name: file, path: fullPath, stat };
+      })
+    );
+
+    // Фильтруем, оставляя только файлы (исключаем поддиректории)
+    const onlyFiles = fileStats.filter(item => item.stat.isFile());
+
+    if (onlyFiles.length === 0) {
+      return null;
+    }
+
+    // Находим файл с максимальным временем изменения (mtime)
+    const latest = onlyFiles.reduce((latestFile, currentFile) => {
+      return currentFile.stat.mtime > latestFile.stat.mtime ? currentFile : latestFile;
+    });
+
+    return {
+      name: latest.name,
+      path: latest.path,
+      mtime: latest.stat.mtime
+    };
+  } catch (error) {
+    console.error('Ошибка при поиске файла:', error);
+    throw error;
+  }
+}
+
 export async function listFiles() {
     const files = await anthropic.files.list();
     console.log(files);
@@ -106,3 +175,4 @@ const files: string[] = [
 
 // listFiles();
 // deleteFiles(files);
+// copyFile('test.pdf', path.resolve(__dirname, '../../../Downloads'), path.resolve(__dirname, '../input/files'));
