@@ -10,46 +10,55 @@ export abstract class Conversation implements Agent {
     abstract callTools(response: AnthropicMessage): Promise<any[]>;
     abstract getAgent(): any;
     abstract closeConnection(): Promise<void>;
+    abstract isClosed(): boolean;
 
     async startConversation(messages: Message[], tools: any[]) : Promise<AnthropicMessage | undefined> {
         const agentTools = await this.getTools();
-        console.log("Agent tools: ", agentTools);
+        // console.log("Agent tools: ", agentTools);
         const allTools = [...agentTools, ...tools];
-        console.log("All tools available for the conversation: ", allTools);
+        // console.log("All tools available for the conversation: ", allTools);
 
-        console.log("Запуск диалога with Claude...");
+        console.error("Запуск диалога with Claude...");
         let keepGoing = true;
         let numberOfIterations = 0;
 
         // 4. Запускаем бесконечный цикл обработки ответов (Agent Loop)
-        while (keepGoing && numberOfIterations < 20) {    
+        while (keepGoing && numberOfIterations < 5 && !this.isClosed()) {    
             const response = await sendMessages("claude-sonnet-5", messages, allTools);
             messages = await addMessage(messages, "assistant", response.content);
             numberOfIterations++;
 
             // Если Клод решил, что для ответа нужно вызвать инструмент (tool_use)
             if (response.stop_reason === "tool_use") {
-                const toolResults = await this.callTools(response);
-                console.log("Tool results: ", toolResults);
-                if (toolResults.length > 0) {
-                    messages = await addMessage(messages, "user", toolResults as Anthropic.ContentBlock[]);
+                const toolResults: {type: string, tool_use_id: string, content: any[]}[] = await this.callTools(response);
+                if (!this.isClosed()) {
+                    console.error(`is closed: ${this.isClosed()}`);
+                    console.error("Tool results: ", toolResults);
+                    console.error("Tool results content: ", toolResults[0].content[0]);
+                    if (toolResults.length > 0) {
+                        messages = await addMessage(messages, "user", toolResults as Anthropic.ContentBlock[]);
+                    } else {
+                        console.error("No tool results to send back to Claude.");
+                        keepGoing = false; // Exit the loop if there are no tool results
+                        return response;
+                    }                 
+                    // Цикл продолжается: на следующей итерации Клод получит результаты и решит, что делать дальше
+                    console.error("Отправка результатов обратно Клоду для следующего шага...");
                 } else {
-                    console.log("No tool results to send back to Claude.");
-                    keepGoing = false; // Exit the loop if there are no tool results
+                    console.error("Connection closed.");
                     return response;
-                }                 
-                // Цикл продолжается: на следующей итерации Клод получит результаты и решит, что делать дальше
-                console.log("Отправка результатов обратно Клоду для следующего шага...");
+                }
             } else {
                 // Если стоп-сигнал не tool_use, значит Клод закончил работу и сформировал финальный ответ
                 keepGoing = false;
                 return response; // Return the final response when the conversation ends
             }  
             
-            if (keepGoing && numberOfIterations >= 20) {
-                console.log("Maximum number of iterations reached. Ending conversation.");
+            if (keepGoing && numberOfIterations >= 5) {
+                console.error("Maximum number of iterations reached. Ending conversation.");
                 keepGoing = false;
-                return undefined; // Return undefined if the maximum number of iterations is reached
+                throw new Error("Maximum number of iterations reached. Ending conversation.");
+                // return undefined; // Return undefined if the maximum number of iterations is reached
             }
         } 
     }

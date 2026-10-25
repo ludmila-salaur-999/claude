@@ -21,6 +21,10 @@ export class BashAgent extends Conversation {
         return this.bashSession;
     }
 
+    isClosed(): boolean {
+        return false;
+    }
+
     async closeConnection() {
         console.log("Closing Bash Agent connection...");
         this.bashSession?.close();

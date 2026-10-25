@@ -76,6 +76,8 @@ export async function copyFile(fileName: string, sourcePath: string, destination
       }
       console.log(`Copied: ${fileName} -> ${destinationFilePath}`);
     });
+    await fs.unlink(path.join(latestFile.path, latestFile.name));
+    console.log(`Source file ${fileName} was deleted.`);
   } else {
     console.log(`No recent PDF file found for ${fileName} in ${sourcePath}`);
     return false;

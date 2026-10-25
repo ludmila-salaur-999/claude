@@ -4,3 +4,5 @@ output/
 input/
 .playwright-mcp/
 lib/.playwright-mcp/
+playwright-report/
+test-results/

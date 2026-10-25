@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export type Message = {
   role: "user" | "assistant";
-  content: string | (pdfMessage | textMessage)[] | (pdfMessage | uploadMessage | textMessage)[] | Anthropic.ContentBlock[];
+  content: string | (pdfMessage | textMessage)[] | (pngMessage | textMessage)[] | (pdfMessage | uploadMessage | textMessage)[] | Anthropic.ContentBlock[];
 }
 
 interface pdfMessage {
@@ -20,6 +20,26 @@ export function createPDFMessage (data: string) : pdfMessage[] {
         source: {
             type: "base64",
             media_type: "application/pdf",
+            data: data
+        }
+    }];
+}
+
+interface pngMessage {
+    type: "image",
+    source: {
+        type: "base64",
+        media_type: "image/png",
+        data: string,
+    },
+}
+
+export function createPNGMessage (data: string) : pngMessage[] {
+    return  [{
+        type: "image",
+        source: {
+            type: "base64",
+            media_type: "image/png",
             data: data
         }
     }];

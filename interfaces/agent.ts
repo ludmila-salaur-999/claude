@@ -6,5 +6,6 @@ export interface Agent {
     getTools(): Promise<any[]>;
     callTools(response: AnthropicMessage): Promise<any[]>;
     getAgent(): any;
+    isClosed(): boolean;
     closeConnection(): Promise<void>;
 }

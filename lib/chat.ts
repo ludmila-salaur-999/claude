@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getClient } from './client.js';
 import { uploadFile, downloadFile } from './file_util.js';
-import { Message, createPDFMessage, createTextMessage, createUploadMessage } from './message.js';
+import { Message, createPDFMessage, createTextMessage, createUploadMessage, createPNGMessage } from './message.js';
 import { createCodeExecutionTool } from './tool.js';
 import { isContentBlockArray } from './util.js';
 
@@ -27,11 +27,19 @@ export async function addMessage(messages: Message[], role: "user" | "assistant"
     newMessage = { role, content };
   } else if (files && !Array.isArray(files) && !isContentBlockArray(content)) {
     safeFilename = path.basename(files);
-    destinationFile = path.join(INPUT_DIR_FILES, safeFilename);
-    const fileContent = readFileSync(destinationFile, "base64");
-    const pdfMessage = createPDFMessage(fileContent);
-    const textMessage = createTextMessage(content);
-    newMessage = { role, content: [...pdfMessage, ...textMessage] };
+    if (files.includes("pdf")) {
+      destinationFile = path.join(INPUT_DIR_FILES, safeFilename);
+      const fileContent = readFileSync(destinationFile, "base64");
+      const pdfMessage = createPDFMessage(fileContent);
+      const textMessage = createTextMessage(content);
+      newMessage = { role, content: [...pdfMessage, ...textMessage] };
+    } else if (files.includes("png")) {
+      destinationFile = path.join(OUTPUT_DIR_FILES, safeFilename);
+      const fileContent = readFileSync(destinationFile, "base64");
+      const pngMessage = createPNGMessage(fileContent);
+      const textMessage = createTextMessage(content);
+      newMessage = { role, content: [...pngMessage, ...textMessage] };
+    }
   } else if (files && Array.isArray(files) && !isCsvOnly && !isContentBlockArray(content)){
     safeFilename = path.basename(files[0]);
     destinationFile = path.join(INPUT_DIR_FILES, safeFilename);
@@ -64,7 +72,7 @@ function createFullMessage(model: string, messages: Message[], temperature: numb
     model: model,
     max_tokens: 1024,
     messages: messages,
-    temperature: temperature,
+    // temperature: temperature,
     // stop_sequences: stop_sequences, 
     // system: system,
     // tools: tools
@@ -78,6 +86,7 @@ function createShortMessage(model: string, messages: Message[], tools?: any[]): 
     thinking: {
       type: "disabled"
     },
+    // system: "When saving or writing files, do NOT execute a secondary verification step (such as listing files, reading the file back, or asking me if it saved). Assume the file-writing tool succeeds unless it explicitly returns an error message.",
     messages: messages,
     tools: tools,
     tool_choice: {"type": "any"} //"tool", "name": "submit_evaluation"},

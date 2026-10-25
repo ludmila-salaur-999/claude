@@ -4,26 +4,29 @@ import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/me
 import { CallToolResult } from '@modelcontextprotocol/sdk/types';
 import Anthropic from '@anthropic-ai/sdk';
 import { Conversation } from '../lib/conversation.js';
-import { addMessage } from '../lib/chat.js';
-import type { Message } from '../lib/message.js';
 
 const transport = new StdioClientTransport({
     command: "npx",
-    args: ["-y", "@playwright/mcp@latest"]
+    args: ["-y", "@playwright/mcp@latest"]//, "--headless", "--isolated"]
 });
 
 const mcpClient = new Client({
-    name: "claude-playwright-runner",
+    name: "playwright-eager-server",//"claude-playwright-runner",
     version: "1.0.0"
 }, {
-    capabilities: {}
+    capabilities: {},
 });
 
+const disallowedTools: string[] = ["browser_tabs", "browser_network_requests", "browser_network_request", "browser_console_messages", "browser_navigate_back", "browser_wait_for", "browser_find", "browser_evaluate"];
+
 export class MCPAgent extends Conversation {
+
+    private isClosed_ = true;
 
     constructor() {
         super();
         this.start();
+        this.isClosed_ = false;
     }
 
     private async start() : Promise<void> {
@@ -38,8 +41,13 @@ export class MCPAgent extends Conversation {
     async closeConnection() {
         // 5. Корректно закрываем соединение с MCP сервером
         await transport.close();
-        console.log("\nConnection closed.");
+        console.log("\nMCP Connection closed.");
+        this.isClosed_ = true;
     }  
+
+    isClosed() {
+        return this.isClosed_;
+    }
     
     async getTools() : Promise<any[]> {
         const { tools: mcpTools } = await mcpClient.listTools();
@@ -59,37 +67,48 @@ export class MCPAgent extends Conversation {
         // Проходим по всем блокам ответа (Клод может вызвать несколько инструментов параллельно)
         for (const block of response.content) {
             if (block.type === "tool_use") {
-                console.log(`\nClaude запрашивает инструмент: [${block.name}]`);
-                console.log(`Аргументы:`, JSON.stringify(block.input));
+                console.error(`\nClaude запрашивает инструмент: [${block.name}]`);
+                console.error(`Аргументы:`, JSON.stringify(block.input));
 
-                try {
-                    // Вызываем инструмент непосредственно на нашем MCP сервере
-                    const result = await mcpClient.callTool({
-                        name: block.name,
-                        arguments: block.input as Record<string, unknown>
-                    }) as CallToolResult;
-
-                    // Форматируем контент ответа инструмента для API Клода
-                    const toolContent = result.content.map((c: any) => {
-                        if (c.type === 'text') return { type: 'text' as const, text: c.text };
-                        return { type: 'text' as const, text: JSON.stringify(c) };
-                    });
-
-                    // Формируем блок ответа для отправки обратно в LLM
+                if (disallowedTools.includes(block.name)) {
                     toolResultsBlocks.push({
                         type: "tool_result",
                         tool_use_id: block.id,
-                        content: toolContent
+                        content: `Tool [${block.name}] is not in the allowlist`
                     });
+                } else if (block.name === "browser_close") { 
+                    console.error("Closing connection...");
+                    await this.closeConnection();
+                } else {
+                    try {
+                        // Вызываем инструмент непосредственно на нашем MCP сервере
+                        const result = await mcpClient.callTool({
+                            name: block.name,
+                            arguments: block.input as Record<string, unknown>
+                        }) as CallToolResult;
 
-                } catch (error: any) {
-                    console.error(`Ошибка выполнения инструмента ${block.name}:`, error);
-                    toolResultsBlocks.push({
-                        type: "tool_result",
-                        tool_use_id: block.id,
-                        content: [{ type: "text", text: `Error: ${error.message}` }],
-                        is_error: true
-                    });
+                        // Форматируем контент ответа инструмента для API Клода
+                        const toolContent = result.content.map((c: any) => {
+                            if (c.type === 'text') return { type: 'text' as const, text: c.text };
+                            return { type: 'text' as const, text: JSON.stringify(c) };
+                        });
+
+                        // Формируем блок ответа для отправки обратно в LLM
+                        toolResultsBlocks.push({
+                            type: "tool_result",
+                            tool_use_id: block.id,
+                            content: toolContent
+                        });
+
+                    } catch (error: any) {
+                        console.error(`Ошибка выполнения инструмента ${block.name}:`, error);
+                        toolResultsBlocks.push({
+                            type: "tool_result",
+                            tool_use_id: block.id,
+                            content: [{ type: "text", text: `Error: ${error.message}` }],
+                            is_error: true
+                        });
+                    }
                 }
             }
         }
@@ -97,14 +116,3 @@ export class MCPAgent extends Conversation {
         return toolResultsBlocks;
     }    
 }
-
-async function main() {
-    const agent = new MCPAgent();
-    let messages: Message[] = [];
-    const prompt = "Use Playwright MCP to open http://localhost:8080/test.html, find table, extract all data as csv wide format one row per region with all metric columns and save as output2.csv in the one folder up the workspace root nested folder output nested folder files.";
-    messages = await addMessage(messages, "user", prompt);
-    await agent.startConversation(messages, []);
-    await agent.closeConnection();
-}    
-
-// main().catch(console.error);
