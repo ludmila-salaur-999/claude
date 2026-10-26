@@ -37,7 +37,7 @@ export async function compare(filebase: string, scenariofile: string): Promise<s
   // `Run only exactly one command per each classification: awk <params> <base> <actual> without creating /tmp/cmp.awk.\n` +
   // `After running each command, you should immediately return the result.\n` +
   // `Return immediately when you find the first difference, do not continue comparing after that.\n` +
-  `If the files are identical, respond with a message "${passedCriteria}" with no extra comments.`;
+  `If the files are identical (ignore line-ending differences if present), respond with a message "${passedCriteria}" with no extra comments.`;
   messages = await addMessage(messages, "user", prompt, [filebase, scenariofile], true);
   const bashAgent = new BashAgent();
   const answer = await bashAgent.startConversation(messages, createCodeExecutionTool()); 

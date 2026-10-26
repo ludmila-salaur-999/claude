@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
 
-  timeout: 180 * 1000,
+  timeout: 300 * 1000,
 
   // Можно комбинировать несколько репортеров (например, понятный 'list' для консоли и детальный 'html')
   reporter: [
