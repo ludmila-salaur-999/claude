@@ -60,8 +60,8 @@ export async function compare(filebase: string, scenariofile: string): Promise<s
   return passed ? passedCriteria : textBlock?.text ?? "No response from comparison tool."; 
 }
 
-compare("test.csv", "test2.csv").then((response) => {
-  console.log("Comparison response: ", response);
-}).catch((error) => {
-  console.error("Error during comparison: ", error);
-});
+// compare("test.csv", "test2.csv").then((response) => {
+//   console.log("Comparison response: ", response);
+// }).catch((error) => {
+//   console.error("Error during comparison: ", error);
+// });

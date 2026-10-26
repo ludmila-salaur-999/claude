@@ -35,6 +35,7 @@ export async function addMessage(messages: Message[], role: "user" | "assistant"
       newMessage = { role, content: [...pdfMessage, ...textMessage] };
     } else if (files.includes("png")) {
       destinationFile = path.join(OUTPUT_DIR_FILES, safeFilename);
+      console.log(`Uploading png from ${destinationFile}`);
       const fileContent = readFileSync(destinationFile, "base64");
       const pngMessage = createPNGMessage(fileContent);
       const textMessage = createTextMessage(content);

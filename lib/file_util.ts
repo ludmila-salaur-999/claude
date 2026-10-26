@@ -61,10 +61,10 @@ function saveGeneratedFile(filename: string, buffer: Buffer): void {
   });
 }
 
-export async function copyFile(fileName: string, sourcePath: string, destinationPath: string): Promise<boolean> {
+export async function moveFile(fileName: string, sourcePath: string, destinationPath: string): Promise<boolean> {
   const latestFile = await getLatestFile(sourcePath);
-  if (latestFile && latestFile.name.indexOf('.pdf') !== -1 && 
-    latestFile.name.indexOf(fileName.substring(0, fileName.indexOf('.pdf'))) !== -1 && 
+  if (latestFile && 
+    latestFile.name.indexOf(fileName.substring(0, fileName.indexOf('.'))) !== -1 && 
     latestFile.mtime > new Date(Date.now() - 5 * 60 * 1000)) {
     const sourceFilePath = path.join(sourcePath, latestFile.name);
     const destinationFilePath = path.join(destinationPath, fileName);
@@ -76,10 +76,10 @@ export async function copyFile(fileName: string, sourcePath: string, destination
       }
       console.log(`Copied: ${fileName} -> ${destinationFilePath}`);
     });
-    await fs.unlink(path.join(latestFile.path, latestFile.name));
+    await fs.unlink(latestFile.path);
     console.log(`Source file ${fileName} was deleted.`);
   } else {
-    console.log(`No recent PDF file found for ${fileName} in ${sourcePath}`);
+    console.log(`No recent file found for ${fileName} in ${sourcePath}`);
     return false;
   }
   return true;

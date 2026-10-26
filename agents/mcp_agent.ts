@@ -7,7 +7,7 @@ import { Conversation } from '../lib/conversation.js';
 
 const transport = new StdioClientTransport({
     command: "npx",
-    args: ["-y", "@playwright/mcp@latest"]//, "--headless", "--isolated"]
+    args: ["-y", "@playwright/mcp@latest", "--headless", "--isolated"]
 });
 
 const mcpClient = new Client({
