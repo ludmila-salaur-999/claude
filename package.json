@@ -6,11 +6,9 @@
     "start": "node test.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.3.0",
     "@modelcontextprotocol/sdk": "^1.30.1",
     "dotenv": "^16.6.1",
-    "pdfkit": "^0.20.2",
-    "zod": "^4.6.7"
+    "pdfkit": "^0.20.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

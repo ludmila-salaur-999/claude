@@ -17,7 +17,7 @@ test('This demo input should pass', async ({ page }) => {
     await testPage.clickSuccessButton();
 });
 
-test('This demo input should fail', async ({ page }) => {
+test.only('This demo input should fail', async ({ page }) => {
     console.log('Running Playwright part...');
     await page.goto("http://localhost:8080/test.html");
     const testPage = new TestPage(page);

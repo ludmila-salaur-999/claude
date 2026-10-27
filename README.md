@@ -140,3 +140,4 @@ claude --version
 
 - The `.env` file is already ignored by Git.
 - Replace the placeholder API key with your real Anthropic key before running API calls.
+- The sample GitHub Actions workflow at `.github/workflows/ci_example.yml` installs project packages, ensures Git Bash is available, type-checks the project, and verifies the local HTTP server on pushes and pull requests to `master`. Add `ANTHROPIC_API_KEY` and `CLAUDE_CODE_API_KEY` as repository secrets if workflow steps need to make API calls; the workflow also sets the directory variables from `.env.example`.

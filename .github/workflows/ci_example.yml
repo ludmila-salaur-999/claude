@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: windows-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_CODE_API_KEY: ${{ secrets.CLAUDE_CODE_API_KEY }}
+      OUTPUT_DIR_FILES: output-sample/files
+      INPUT_DIR_FILES: input-sample/files
+      INPUT_DIR_JSON: input-sample/json
+      OUTPUT_DIR_JSON: output-sample/json
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Git Bash wrapper
+        shell: pwsh
+        run: |
+          $bashDirectory = Join-Path $env:ProgramFiles "Git\bin"
+          $bashPath = Join-Path $bashDirectory "bash.exe"
+          if (-not (Test-Path $bashPath)) {
+            choco install git.install -y --no-progress
+          }
+          if (-not (Test-Path $bashPath)) {
+            throw "Git Bash was not found after installing Git for Windows."
+          }
+          $bashDirectory | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & $bashPath --version
+
+      - name: Install project packages
+        run: npm ci
+
+      - name: Type-check TypeScript
+        run: npx tsc --noEmit
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium
+
+      - name: Start http-server from project root
+        shell: pwsh
+        working-directory: .
+        run: |
+          $server = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "npx http-server -p 8080" -PassThru -WindowStyle Hidden
+          "HTTP_SERVER_PID=$($server.Id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $ready = $false
+          for ($attempt = 0; $attempt -lt 30; $attempt++) {
+            if ($server.HasExited) {
+              throw "http-server exited before it became ready."
+            }
+            try {
+              $response = Invoke-WebRequest -Uri "http://localhost:8080/test.html" -TimeoutSec 2
+              if ($response.StatusCode -eq 200) {
+                $ready = $true
+                break
+              }
+            } catch {
+              Start-Sleep -Seconds 1
+            }
+          }
+          if (-not $ready) {
+            throw "http-server did not serve test.html on port 8080."
+          }
+
+      - name: Run Playwright tests from project root
+        run: npx playwright test
+
+      - name: Stop http-server
+        if: always() && env.HTTP_SERVER_PID != ''
+        shell: pwsh
+        run: Stop-Process -Id $env:HTTP_SERVER_PID -Force -ErrorAction SilentlyContinue
