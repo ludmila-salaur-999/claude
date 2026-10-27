@@ -1,6 +1,6 @@
 import type { Message } from './message.js';
 import { addMessage, sendMessages } from './chat.js';
-import { createCodeExecutionTool } from './tool.js';
+import { createCodeExecutionTool, createTestStatusTool } from './tool.js';
 import { Anthropic } from '@anthropic-ai/sdk';
 import { BashAgent } from '../agents/bash_agent.js';
 import 'dotenv/config'; // Automatically loads your .env file
@@ -40,7 +40,7 @@ export async function compare(filebase: string, scenariofile: string): Promise<s
   `If the files are identical (ignore line-ending differences if present), respond with a message "${passedCriteria}" with no extra comments.`;
   messages = await addMessage(messages, "user", prompt, [filebase, scenariofile], true);
   const bashAgent = new BashAgent();
-  const answer = await bashAgent.startConversation(messages, createCodeExecutionTool()); 
+  const answer = await bashAgent.startConversation(messages, [...createCodeExecutionTool(), ...createTestStatusTool()]); 
   bashAgent.closeConnection();
   const textBlock = answer?.content.find(
     (block): block is Anthropic.TextBlock => block.type === "text"

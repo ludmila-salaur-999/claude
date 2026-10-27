@@ -34,7 +34,7 @@ export abstract class Conversation implements Agent {
                 if (!this.isClosed()) {
                     console.error(`is closed: ${this.isClosed()}`);
                     console.error("Tool results: ", toolResults);
-                    console.error("Tool results content: ", toolResults[0].content[0]);
+                    // console.error("Tool results content: ", toolResults[0].content[0]);
                     if (toolResults.length > 0) {
                         messages = await addMessage(messages, "user", toolResults as Anthropic.ContentBlock[]);
                     } else {

@@ -10,14 +10,14 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', process.env.OUTPUT_DIR_FILES ?? 'output/files');
 
-test('This demo input should pass', async ({ page }) => {
+test.only('This demo input should pass', async ({ page }) => {
     console.log('Running Playwright part...');
     await page.goto("http://localhost:8080/test.html");
     const testPage = new TestPage(page);
     await testPage.clickSuccessButton();
 });
 
-test.only('This demo input should fail', async ({ page }) => {
+test('This demo input should fail', async ({ page }) => {
     console.log('Running Playwright part...');
     await page.goto("http://localhost:8080/test.html");
     const testPage = new TestPage(page);

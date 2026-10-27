@@ -80,6 +80,54 @@ export function createEvaluationTool() : evaluationTool[] {
     ]
 }
 
+interface testStatusTool {
+  "name": "report_test_results",
+  "description": "Records the final execution status of the test suite and captures any encountered bugs.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "The overall status of the test execution (e.g., 'Test passed.', 'Test failed.', 'Error')."
+      },
+      "bug_list": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "An optional list of specific bugs or failures observed during file comparison."
+      }
+    },
+    "required": ["status"]
+  }
+}
+
+export function createTestStatusTool(): testStatusTool[] {
+    return [
+        {
+            "name": "report_test_results",
+            "description": "Records the final execution status of the test suite and captures any encountered bugs.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                "status": {
+                    "type": "string",
+                    "description": "The overall status of the test execution (e.g., 'Test passed.', 'Test failed.', 'Error')."
+                },
+                "bug_list": {
+                    "type": "array",
+                    "items": {
+                    "type": "string"
+                    },
+                    "description": "An optional list of specific bugs or failures observed during file comparison."
+                }
+                },
+                "required": ["status"]
+            }            
+        }
+    ]
+}
+
 interface bashSessionTool {
     type: "bash_20250124", 
     name: "bash"
