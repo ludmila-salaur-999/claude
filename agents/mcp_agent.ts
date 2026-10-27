@@ -17,7 +17,8 @@ const mcpClient = new Client({
     capabilities: {},
 });
 
-const disallowedTools: string[] = ["browser_tabs", "browser_network_requests", "browser_network_request", "browser_console_messages", "browser_navigate_back", "browser_wait_for", "browser_find", "browser_evaluate"];
+const stopConnectionTools: string[] = ["browser_close", "browser_tabs", "browser_navigate_back", "browser_wait_for", "browser_find"];
+const disallowedTools: string[] = ["browser_evaluate", "browser_network_requests", "browser_network_request", "browser_console_messages"];
 
 export class MCPAgent extends Conversation {
 
@@ -70,15 +71,22 @@ export class MCPAgent extends Conversation {
                 console.error(`\nClaude запрашивает инструмент: [${block.name}]`);
                 console.error(`Аргументы:`, JSON.stringify(block.input));
 
-                if (disallowedTools.includes(block.name)) {
+                if (stopConnectionTools.includes(block.name)) {
+                    // toolResultsBlocks.push({
+                    //     type: "tool_result",
+                    //     tool_use_id: block.id,
+                    //     content: `Tool [${block.name}] is not in the allowlist`
+                    // });
+                    console.error("Closing connection...");
+                    await this.closeConnection();                    
+                } else if (disallowedTools.includes(block.name)) { 
+                    // console.error("Closing connection...");
+                    // await this.closeConnection();
                     toolResultsBlocks.push({
                         type: "tool_result",
                         tool_use_id: block.id,
                         content: `Tool [${block.name}] is not in the allowlist`
-                    });
-                } else if (block.name === "browser_close") { 
-                    console.error("Closing connection...");
-                    await this.closeConnection();
+                    });                    
                 } else {
                     try {
                         // Вызываем инструмент непосредственно на нашем MCP сервере

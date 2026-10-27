@@ -23,7 +23,7 @@ export abstract class Conversation implements Agent {
         let numberOfIterations = 0;
 
         // 4. Запускаем бесконечный цикл обработки ответов (Agent Loop)
-        while (keepGoing && numberOfIterations < 5 && !this.isClosed()) {    
+        while (keepGoing && numberOfIterations < 20 && !this.isClosed()) {    
             const response = await sendMessages("claude-sonnet-5", messages, allTools);
             messages = await addMessage(messages, "assistant", response.content);
             numberOfIterations++;
@@ -54,7 +54,7 @@ export abstract class Conversation implements Agent {
                 return response; // Return the final response when the conversation ends
             }  
             
-            if (keepGoing && numberOfIterations >= 5) {
+            if (keepGoing && numberOfIterations >= 20) {
                 console.error("Maximum number of iterations reached. Ending conversation.");
                 keepGoing = false;
                 throw new Error("Maximum number of iterations reached. Ending conversation.");

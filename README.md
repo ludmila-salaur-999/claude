@@ -124,6 +124,7 @@ Then open in your browser:
 
 ```text
 http://localhost:8080/test.html
+http://localhost:8080/test_viewport.html
 ```
 
 ## 8) Useful commands
