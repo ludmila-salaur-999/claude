@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "scenario-pdf": {
+      "type": "stdio",
+      "command": "npm",
+      "args": ["run", "mcp:server"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}

@@ -2,7 +2,7 @@ import { getClient } from './client.js';
 import { toFile } from '@anthropic-ai/sdk';
 import { createReadStream } from 'fs';
 import * as fs from 'fs/promises';
-import { mkdirSync, writeFile, readFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFile } from 'fs';
 import path from 'node:path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
@@ -22,7 +22,7 @@ export async function uploadFile(filename: string) : Promise<string> {
             { type: "text/csv" }
         )
     });
-    console.log(uploaded.id);
+    console.error(uploaded.id);
     return uploaded.id;
 }
 
@@ -38,7 +38,7 @@ export async function downloadFile(answer: AnthropicMessage) {
           ]);
           const arrayBuffer = await fileResponse.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
-          saveGeneratedFile(fileMetadata.filename, buffer);
+          await saveGeneratedFile(fileMetadata.filename, buffer);
         }
       }
     }
@@ -48,17 +48,12 @@ export async function downloadFile(answer: AnthropicMessage) {
 const OUTPUT_DIR_FILES = path.resolve(__dirname, '..', process.env.OUTPUT_DIR_FILES ?? 'output/files');
 mkdirSync(OUTPUT_DIR_FILES, { recursive: true });
 
-function saveGeneratedFile(filename: string, buffer: Buffer): void {
+async function saveGeneratedFile(filename: string, buffer: Buffer): Promise<void> {
   const safeFilename = path.basename(filename);
   const destination = path.join(OUTPUT_DIR_FILES, safeFilename);
 
-  writeFile(destination, buffer, (err) => {
-    if (err) {
-      console.error(`Failed to save ${safeFilename}:`, err);
-      return;
-    }
-    console.log(`Downloaded: ${safeFilename} -> ${destination}`);
-  });
+  await fs.writeFile(destination, buffer);
+  console.error(`Downloaded: ${safeFilename} -> ${destination}`);
 }
 
 export async function moveFile(fileName: string, sourcePath: string, destinationPath: string): Promise<boolean> {
@@ -74,12 +69,12 @@ export async function moveFile(fileName: string, sourcePath: string, destination
         console.error(`Failed to copy ${fileName}:`, err);
         return;
       }
-      console.log(`Copied: ${fileName} -> ${destinationFilePath}`);
+      console.error(`Copied: ${fileName} -> ${destinationFilePath}`);
     });
     await fs.unlink(latestFile.path);
-    console.log(`Source file ${fileName} was deleted.`);
+    console.error(`Source file ${fileName} was deleted.`);
   } else {
-    console.log(`No recent file found for ${fileName} in ${sourcePath}`);
+    console.error(`No recent file found for ${fileName} in ${sourcePath}`);
     return false;
   }
   return true;

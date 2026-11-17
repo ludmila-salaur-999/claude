@@ -110,6 +110,27 @@ Or with ts-node:
 npx ts-node your-file.ts
 ```
 
+To start the scenario PDF MCP server:
+
+```bash
+npm run mcp:server
+```
+
+It exposes each `scenario*.pdf` in `input/files` as a resource, an extraction tool, a CSV comparison tool, and a prompt that orchestrates extraction followed by comparison.
+
+To send a natural-language request to the server through an MCP client app:
+
+```bash
+npm run mcp:app -- "Extract scenario.pdf to CSV"
+```
+
+Or run `npm run mcp:app` without arguments to enter a request interactively. The app starts its own stdio connection to the configured MCP server and uses the Anthropic API to choose and call its tools. Set `ANTHROPIC_API_KEY` (or `CLAUDE_API_KEY`) before running it.
+
+On prompt type /compare_scenario_pdfs prompt from the scenario-pdf server, and fill its arguments with registered PDF resource URIs, for example:
+
+firstPdf: scenario-pdf:///scenario.pdf
+secondPdf: scenario-pdf:///scenario1.pdf
+
 ## 7) Run the HTML page on localhost
 
 From the project root, start a local web server:

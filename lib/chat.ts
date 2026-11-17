@@ -1,5 +1,5 @@
 import { ContentBlock, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources.js';
-import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
+import type { Message as AnthropicMessage, JSONOutputFormat } from '@anthropic-ai/sdk/resources/messages.mjs';
 import dotenv from 'dotenv'; // Automatically loads your .env file
 import { mkdirSync, readFileSync } from 'fs';
 import path from 'node:path';
@@ -97,8 +97,51 @@ function createShortMessage(model: string, messages: Message[], tools?: any[]): 
     thinking: { 
       type: "disabled"
     },
-    messages: messages
+    messages: messages,
+    output_config: {
+      format: jsonOutputFormat,
+    } 
   };
+}
+
+const jsonOutputFormat: JSONOutputFormat = {
+  type: "json_schema",
+  schema: {
+    type: "object",
+    properties: {
+      status: {
+        type: "string",
+        description: "A mandatory status of the test report, e.g., 'success', 'error'."
+      },
+      // test: {
+      //   type: "number",
+      //   minimum: 1,
+      //   maximum: 10,
+      //   description: "A mandatory test number between 1 and 10 calculating the total number of issues."
+      // },      
+      issues: {
+        type: "array",
+        description: "An optional array of issue objects, each containing issue type and issue details.",
+        items: {
+          type: "object",
+          properties: {
+            type: {
+              type: "string"
+            },
+            details: {              
+              type: "array",
+              description: "An array of strings providing details about the specific issue.",
+              items: { type: "string" }
+            }
+          },
+          additionalProperties: false,
+          required: ["type", "details"]
+        }
+      }
+    },
+    additionalProperties: false,
+    required: ["status", "test"]
+  }
 }
 
 export async function sendMessages(model: string, messages: Message[], tools?: any[], temperature?: number, stop_sequences?: string[]): Promise<AnthropicMessage> {
