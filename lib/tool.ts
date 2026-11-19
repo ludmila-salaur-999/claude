@@ -82,23 +82,37 @@ export function createEvaluationTool() : evaluationTool[] {
 
 interface testStatusTool {
   "name": "report_test_results",
-  "description": "Records the final execution status of the test suite and captures any encountered bugs.",
+  "description": "Contains status of testing comparison of two files and captures any encountered differences.",
   "input_schema": {
     "type": "object",
     "properties": {
       "status": {
         "type": "string",
-        "description": "The overall status of the test execution (e.g., 'Test passed.', 'Test failed.', 'Error')."
-      },
-      "bug_list": {
+        "description": "A mandatory status of the test report, e.g., 'Test passed.', 'Test failed.'."
+      },    
+      "issues": {
         "type": "array",
+        "description": "An optional array of issue objects, each containing issue type and issue details.",
         "items": {
-          "type": "string"
-        },
-        "description": "An optional list of specific bugs or failures observed during file comparison."
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "details": {              
+              "type": "array",
+              "description": "An array of strings providing details about the specific issue.",
+              "items": { "type": "string" }
+            }
+          },
+          "additionalProperties": false,
+          "required": ["type", "details"]
+        }
       }
     },
-    "required": ["status"]
+    "additionalProperties": false,
+    "required": ["status"],
+    "strict": true   
   }
 }
 
@@ -106,24 +120,38 @@ export function createTestStatusTool(): testStatusTool[] {
     return [
         {
             "name": "report_test_results",
-            "description": "Records the final execution status of the test suite and captures any encountered bugs.",
+            "description": "Contains status of testing comparison of two files and captures any encountered differences.",
             "input_schema": {
                 "type": "object",
                 "properties": {
                 "status": {
                     "type": "string",
-                    "description": "The overall status of the test execution (e.g., 'Test passed.', 'Test failed.', 'Error')."
-                },
-                "bug_list": {
+                    "description": "A mandatory status of the test report, e.g., 'Test passed.', 'Test failed.'."
+                },    
+                "issues": {
                     "type": "array",
+                    "description": "An optional array of issue objects, each containing issue type and issue details.",
                     "items": {
-                    "type": "string"
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                        "type": "string"
+                        },
+                        "details": {              
+                        "type": "array",
+                        "description": "An array of strings providing details about the specific issue.",
+                        "items": { "type": "string" }
+                        }
                     },
-                    "description": "An optional list of specific bugs or failures observed during file comparison."
+                    "additionalProperties": false,
+                    "required": ["type", "details"]
+                    }
                 }
                 },
-                "required": ["status"]
-            }            
+                "additionalProperties": false,
+                "required": ["status"],
+                "strict": true   
+            }
         }
     ]
 }

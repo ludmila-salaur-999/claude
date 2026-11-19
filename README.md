@@ -121,7 +121,7 @@ It exposes each `scenario*.pdf` in `input/files` as a resource, an extraction to
 To send a natural-language request to the server through an MCP client app:
 
 ```bash
-npm run mcp:app -- "Extract scenario.pdf to CSV"
+npm run mcp:app -- "/compare_scenario_pdfs scenario-pdf:///scenario1.pdf scenario-pdf:///scenario2.pdf"
 ```
 
 Or run `npm run mcp:app` without arguments to enter a request interactively. The app starts its own stdio connection to the configured MCP server and uses the Anthropic API to choose and call its tools. Set `ANTHROPIC_API_KEY` (or `CLAUDE_API_KEY`) before running it.

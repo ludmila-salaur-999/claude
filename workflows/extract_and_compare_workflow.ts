@@ -1,7 +1,7 @@
 import path from 'node:path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
-import { extract } from '../lib/extract.js';
+import { extractPlus } from '../lib/extract.js';
 import { compare } from '../lib/compare.js';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -11,8 +11,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export async function runExtractAndCompareWorkflow(fileName1: string, fileName2: string): Promise<string> {
     //Extract from pdf
-    let prompt = "Extract table from pdf document into generated output csv only wide data format one row per region matched to existing column names split into neighbouring columns where applies with exactly same group member column name each (e.g. header group R1/Q1 should be split into R1 and Q1) as 'output.csv'. The pdf is provided as base64 encoded string in document content.";
-    let answer = await extract(prompt, fileName1);
+    // let prompt = "Extract table from pdf document into generated output csv only wide data format one row per region matched to existing column names split into neighbouring columns where applies with exactly same group member column name each (e.g. header group R1/Q1 should be split into R1 and Q1) as 'output.csv'. The pdf is provided as base64 encoded string in document content.";
+    let answer = await extractPlus(fileName1, 'pdf', 'output.csv');
 
     let textBlock = answer.content.find(
         (block): block is Anthropic.TextBlock => block.type === "text"
@@ -21,8 +21,8 @@ export async function runExtractAndCompareWorkflow(fileName1: string, fileName2:
     console.log("Extracted text: ", textBlock?.text);
 
     //Extract from png
-    prompt = "Extract table from png document into generated output csv only wide data format one row per region matched to existing column names split into neighbouring columns where applies with exactly same group member column name each (e.g. header group R1/Q1 should be split into R1 and Q1) as 'output2.csv'. The png is provided as base64 encoded string in image content.";
-    answer = await extract(prompt, fileName2);
+    // prompt = "Extract table from png document into generated output csv only wide data format one row per region matched to existing column names split into neighbouring columns where applies with exactly same group member column name each (e.g. header group R1/Q1 should be split into R1 and Q1) as 'output2.csv'. The png is provided as base64 encoded string in image content.";
+    answer = await extractPlus(fileName2, 'png', 'output2.csv');
 
     textBlock = answer.content.find(
         (block): block is Anthropic.TextBlock => block.type === "text"

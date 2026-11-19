@@ -5,6 +5,7 @@ import { moveFile } from '../lib/file_util.js';
 import { fileURLToPath } from 'node:url';
 import { runMCPWorkflow } from '../workflows/mcp_workflow.js';
 import { runExtractAndCompareWorkflow } from '../workflows/extract_and_compare_workflow.js';
+import { errorCriteria, passedCriteria } from '../lib/compare.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,11 +50,12 @@ export class TestPage {
         const copied = await moveFile(fileName2, sourcePath, OUTPUT_DIR_FILES);  
         console.log('Running Bash...');
         let result: string = "None";
+        let testStatus: string = "None";
         if (copied) {
-            result = await runExtractAndCompareWorkflow(fileName1, fileName2);
+            testStatus = await runExtractAndCompareWorkflow(fileName1, fileName2);
         } else {
-            result = "No file/s was/ere downloaded."
+            testStatus = "No file/s was/ere downloaded."
         }        
-        expect(result).toContain("Test passed.");    
+        expect(testStatus).toContain(passedCriteria);    
     }    
 }

@@ -9,6 +9,7 @@ import { uploadFile, downloadFile } from './file_util.js';
 import { Message, createPDFMessage, createTextMessage, createUploadMessage, createPNGMessage } from './message.js';
 import { createCodeExecutionTool } from './tool.js';
 import { isContentBlockArray } from './util.js';
+import { jsonOutputFormat } from './output_format.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -80,17 +81,30 @@ function createFullMessage(model: string, messages: Message[], temperature: numb
   };
 }
 
-function createShortMessage(model: string, messages: Message[], tools?: any[]): MessageCreateParamsNonStreaming {
-  return tools ? {
+function createShortMessage(model: string, messages: Message[], tools?: any[], output_config?: JSONOutputFormat): MessageCreateParamsNonStreaming {
+  return (tools && output_config) ? {
     model: model,
     max_tokens: 6024,
-    thinking: {
-      type: "disabled"
-    },
+    // thinking: {
+    //   type: "disabled"
+    // },
     // system: "When saving or writing files, do NOT execute a secondary verification step (such as listing files, reading the file back, or asking me if it saved). Assume the file-writing tool succeeds unless it explicitly returns an error message.",
     messages: messages,
     tools: tools,
-    tool_choice: {"type": "any"} //"tool", "name": "submit_evaluation"},
+    // tool_choice: {"type": "any"}, //"tool", "name": "submit_evaluation"},
+    // output_config: {
+    //   format: output_config,
+    // }
+  } : (tools && !output_config) ? {
+    model: model,
+    max_tokens: 6024,
+    // thinking: {
+    //   type: "disabled"
+    // },
+    // system: "When saving or writing files, do NOT execute a secondary verification step (such as listing files, reading the file back, or asking me if it saved). Assume the file-writing tool succeeds unless it explicitly returns an error message.",
+    messages: messages,
+    tools: tools,
+    // tool_choice: {"type": "any"}, //"tool", "name": "submit_evaluation"},
   } : {
     model: model,
     max_tokens: 1024,
@@ -104,53 +118,15 @@ function createShortMessage(model: string, messages: Message[], tools?: any[]): 
   };
 }
 
-const jsonOutputFormat: JSONOutputFormat = {
-  type: "json_schema",
-  schema: {
-    type: "object",
-    properties: {
-      status: {
-        type: "string",
-        description: "A mandatory status of the test report, e.g., 'success', 'error'."
-      },
-      // test: {
-      //   type: "number",
-      //   minimum: 1,
-      //   maximum: 10,
-      //   description: "A mandatory test number between 1 and 10 calculating the total number of issues."
-      // },      
-      issues: {
-        type: "array",
-        description: "An optional array of issue objects, each containing issue type and issue details.",
-        items: {
-          type: "object",
-          properties: {
-            type: {
-              type: "string"
-            },
-            details: {              
-              type: "array",
-              description: "An array of strings providing details about the specific issue.",
-              items: { type: "string" }
-            }
-          },
-          additionalProperties: false,
-          required: ["type", "details"]
-        }
-      }
-    },
-    additionalProperties: false,
-    required: ["status", "test"]
-  }
-}
 
-export async function sendMessages(model: string, messages: Message[], tools?: any[], temperature?: number, stop_sequences?: string[]): Promise<AnthropicMessage> {
+
+export async function sendMessages(model: string, messages: Message[], tools?: any[], output_config?: JSONOutputFormat): Promise<AnthropicMessage> {
   let fullMessage: MessageCreateParamsNonStreaming;
-  if (temperature !== undefined && stop_sequences !== undefined) {
-    fullMessage = createFullMessage(model, messages, temperature, stop_sequences);
-  } else {
-    fullMessage = createShortMessage(model, messages, tools);
-  }
+  // if (temperature !== undefined && stop_sequences !== undefined) {
+  //   fullMessage = createFullMessage(model, messages, temperature, stop_sequences);
+  // } else {
+    fullMessage = createShortMessage(model, messages, tools, output_config);
+  // }
 
   const answer = await anthropic.messages.create(fullMessage);
   

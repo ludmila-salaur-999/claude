@@ -6,7 +6,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { GetPromptResult } from '@modelcontextprotocol/sdk/types.js';
 import { compare } from '../lib/compare.js';
-import { extract } from '../lib/extract.js';
+import { extractPlus } from '../lib/extract.js';
 
 const serverDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectory = path.resolve(serverDirectory, '..');
@@ -99,13 +99,13 @@ export async function createMcpServer(): Promise<McpServer> {
         throw new Error(`Unknown scenario PDF resource: ${resourceUri}`);
       }
 
-      const prompt =
-        `Extract all tables from the supplied PDF into a CSV file named "${scenario.csvName}". ` +
-        'Preserve all table data and column headings. Use wide format, with one row per record, ' +
-        'and split grouped column headings into their component columns when applicable. ' +
-        `Save the CSV in the configured output files directory as "${scenario.csvName}". ` +
-        'Return a concise extraction status.';
-      const answer = await extract(prompt, scenario.fileName);
+      // const prompt =
+      //   `Extract all tables from the supplied PDF into a CSV file named "${scenario.csvName}". ` +
+      //   'Preserve all table data and column headings. Use wide format, with one row per record, ' +
+      //   'and split grouped column headings into their component columns when applicable. ' +
+      //   `Save the CSV in the configured output files directory as "${scenario.csvName}". ` +
+      //   'Return a concise extraction status.';
+      const answer = await extractPlus(scenario.fileName, 'pdf', scenario.csvName);
       const responseText = answer.content
         .filter((block) => block.type === 'text')
         .map((block) => block.text)
@@ -174,7 +174,7 @@ export async function createMcpServer(): Promise<McpServer> {
                 `First call the extract_pdf_to_csv tool for ${firstPdf}; its CSV filename is ${firstScenario.csvName}.`,
                 `Then call the extract_pdf_to_csv tool for ${secondPdf}; its CSV filename is ${secondScenario.csvName}.`,
                 'Do not compare the PDFs directly. Wait until both extractions have completed successfully, then call compare_csvs with the two CSV filenames above.',
-                'Report "Test passed." only if the CSVs are identical; otherwise report only the issues identified by the comparison tool.',
+                'Report "success" only if the CSVs are identical; otherwise report only the issues identified by the comparison tool.',
               ].join('\n'),
             },
           },

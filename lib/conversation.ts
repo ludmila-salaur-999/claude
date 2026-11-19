@@ -1,6 +1,6 @@
 import type { Message } from './message.js';
 import { addMessage, sendMessages } from './chat.js';
-import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages.mjs';
+import type { Message as AnthropicMessage, JSONOutputFormat } from '@anthropic-ai/sdk/resources/messages.mjs';
 import { Agent } from '../interfaces/agent.js';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -12,7 +12,7 @@ export abstract class Conversation implements Agent {
     abstract closeConnection(): Promise<void>;
     abstract isClosed(): boolean;
 
-    async startConversation(messages: Message[], tools: any[]) : Promise<AnthropicMessage | undefined> {
+    async startConversation(messages: Message[], tools: any[], output_config?: JSONOutputFormat): Promise<AnthropicMessage | undefined> {
         const agentTools = await this.getTools();
         // console.log("Agent tools: ", agentTools);
         const allTools = [...agentTools, ...tools];
@@ -23,8 +23,8 @@ export abstract class Conversation implements Agent {
         let numberOfIterations = 0;
 
         // 4. Запускаем бесконечный цикл обработки ответов (Agent Loop)
-        while (keepGoing && numberOfIterations < 20 && !this.isClosed()) {    
-            const response = await sendMessages("claude-sonnet-5", messages, allTools);
+        while (keepGoing && numberOfIterations < 30 && !this.isClosed()) {    
+            const response = await sendMessages("claude-sonnet-5-5", messages, allTools, output_config);
             messages = await addMessage(messages, "assistant", response.content);
             numberOfIterations++;
 
@@ -54,7 +54,7 @@ export abstract class Conversation implements Agent {
                 return response; // Return the final response when the conversation ends
             }  
             
-            if (keepGoing && numberOfIterations >= 20) {
+            if (keepGoing && numberOfIterations >= 30) {
                 console.error("Maximum number of iterations reached. Ending conversation.");
                 keepGoing = false;
                 throw new Error("Maximum number of iterations reached. Ending conversation.");
